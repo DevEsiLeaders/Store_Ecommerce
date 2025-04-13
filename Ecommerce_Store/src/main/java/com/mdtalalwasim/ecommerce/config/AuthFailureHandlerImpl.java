@@ -22,21 +22,21 @@ public class AuthFailureHandlerImpl extends SimpleUrlAuthenticationFailureHandle
 
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	UserService userService;
-	
+
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException exception) throws IOException, ServletException {
-		
+										AuthenticationException exception) throws IOException, ServletException {
+
 		String email = request.getParameter("username");
 		User user = userRepository.findByEmail(email);
-		
+
 		if(user != null) {
 			if(user.getIsEnable()) {
 				//account is active
-				
+
 				if(user.getAccountStatusNonLocked()) {
 					//Non-locked / Unlocked
 					if(user.getAccountfailedAttemptCount() < AppConstant.ATTEMPT_COUNT) {
@@ -46,7 +46,7 @@ public class AuthFailureHandlerImpl extends SimpleUrlAuthenticationFailureHandle
 						userService.userAccountLock(user);
 						exception = new LockedException("Your account is Locked! Failed Attempt 3");
 					}
-					
+
 				}else {
 					//Locked
 					if(userService.isUnlockAccountTimeExpired(user)) {
@@ -55,7 +55,7 @@ public class AuthFailureHandlerImpl extends SimpleUrlAuthenticationFailureHandle
 						exception = new LockedException("Your account is Locked! Please try after sometimes");
 					}
 				}
-				
+
 			}else {
 				//account is inactive
 				exception = new LockedException("Your account is inactive");
@@ -63,10 +63,10 @@ public class AuthFailureHandlerImpl extends SimpleUrlAuthenticationFailureHandle
 		}else {
 			exception = new LockedException("Email & Password Invalid!");
 		}
-		
+
 		super.setDefaultFailureUrl("/signin?error");
 		super.onAuthenticationFailure(request, response, exception);
 	}
-	
-	
+
+
 }

@@ -165,7 +165,7 @@ public class AdminViewController {
 			Category oldCategory = categoryById.get();
 			System.out.println("Category old Obj "+oldCategory.toString());
 			oldCategory.setCategoryName(category.getCategoryName());
-			oldCategory.setIsActive(category.getIsActive());
+			oldCategory.setActive(category.getActive());
 			//oldCategory.setUpdatedAt(LocalDateTime.now());
 			
 			

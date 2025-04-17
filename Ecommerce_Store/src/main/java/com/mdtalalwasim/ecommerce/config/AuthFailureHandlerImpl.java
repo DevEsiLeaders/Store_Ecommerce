@@ -34,7 +34,7 @@ public class AuthFailureHandlerImpl extends SimpleUrlAuthenticationFailureHandle
 		User user = userRepository.findByEmail(email);
 
 		if(user != null) {
-			if(user.getIsEnable()) {
+			if(user.getEnable()) {
 				//account is active
 
 				if(user.getAccountStatusNonLocked()) {

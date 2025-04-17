@@ -11,6 +11,14 @@ public class ProductOrderRequest {
 
 	private String email;
 
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
 	private String mobile;
 
 	private String address;

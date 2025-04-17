@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService{
 	public User saveUser(User user) {
 		System.out.println("user obje :"+user.toString());
 		user.setRole("ROLE_USER");
-		user.setIsEnable(true);
+		user.setEnable(true);
 		user.setAccountStatusNonLocked(true);
 		user.setAccountfailedAttemptCount(0);
 		user.setAccountLockTime(null);
@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService{
 		Optional<User> userById = userRepository.findById(id);
 		if (userById.isPresent()) {
 			User user = userById.get();
-			user.setIsEnable(status);
+			user.setEnable(status);
 			userRepository.save(user);
 
 			return true;

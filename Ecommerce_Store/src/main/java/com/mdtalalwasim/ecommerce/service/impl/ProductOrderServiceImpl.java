@@ -48,4 +48,24 @@ public class ProductOrderServiceImpl implements ProductOrderService{
 		return null;
 	}
 
+	@Override
+	public List<ProductOrder> getAllOrders() {
+		return productOrderRepository.findAll();
+	}
+
+	@Override
+	public ProductOrder getOrderById(String orderId) {
+		return productOrderRepository.findById(orderId).orElse(null);
+	}
+
+	@Override
+	public ProductOrder updateOrderStatus(String orderId, String status) {
+		ProductOrder order = productOrderRepository.findById(orderId).orElse(null);
+		if (order != null) {
+			order.setStatus(status);
+			return productOrderRepository.save(order);
+		}
+		return null;
+	}
+
 }

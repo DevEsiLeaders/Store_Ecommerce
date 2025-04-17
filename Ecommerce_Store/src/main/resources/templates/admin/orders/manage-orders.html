@@ -1,120 +1,59 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/base :: layout(~{::section})}">
+      th:replace="~{base::layout(~{::section})}">
 <head>
   <meta charset="UTF-8">
-  <title>Manage Orders | Admin Dashboard</title>
+  <title>Order List</title>
 </head>
 <body>
 <section>
-  <div class="container p-5">
-    <h3 class="text-center mb-4">Manage Orders</h3>
-
-    <!-- Success/Error Messages -->
-    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
-      <span th:text="${successMsg}"></span>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
-      <span th:text="${errorMsg}"></span>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
-    <!-- Orders Table -->
-    <div class="card custom-card-shadow">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table id="ordersTable" class="table table-striped">
-            <thead class="table-primary">
-            <tr>
-              <th>Order ID</th>
-              <th>Date</th>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Total Price</th>
-              <th>Customer</th>
-              <th>Status</th>
-              <th>Payment</th>
-              <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="order : ${orders}">
-              <td th:text="${order.orderId}"></td>
-              <td th:text="${#temporals.format(order.orderDate, 'dd-MM-yyyy')}"></td>
-              <td th:text="${order.product.name}"></td>
-              <td th:text="${order.quantity}"></td>
-              <td th:text="${'$' + order.price}"></td>
-              <td th:text="${order.user.name}"></td>
-              <td>
-                  <span th:class="${order.status == 'Completed' ? 'badge bg-success' :
-                      (order.status == 'Cancelled' ? 'badge bg-danger' : 'badge bg-warning')}"
-                        th:text="${order.status}">
-                  </span>
-              </td>
-              <td th:text="${order.paymentType}"></td>
-              <td>
-                <div class="d-flex">
-                  <a th:href="@{'/admin/order/' + ${order.orderId}}" class="btn btn-sm btn-info me-1">
+  <div class="container-fluid p-5">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card custom-card-shadow">
+          <div class="card-header text-center fs-4">Order List</div>
+          <div class="card-body">
+            <table class="table">
+              <thead>
+              <tr>
+                <th scope="col">No.</th>
+                <th scope="col">Order ID</th>
+                <th scope="col">Date</th>
+                <th scope="col">Payment</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Price</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="order, count : ${orders}">
+                <th scope="row">[[${count.count}]]</th>
+                <td th:text="${order.orderId}">ORD001</td>
+                <td th:text="${order.orderDate}">2025-04-17</td>
+                <td th:text="${order.paymentType}">Credit Card</td>
+                <td th:text="${order.quantity}">2</td>
+                <td th:text="${order.price}">25.49</td>
+                <td th:text="${order.status}">Pending</td>
+                <td>
+                  <a th:href="@{'/admin/order/' + ${order.orderId}}" class="btn btn-info btn-sm">
                     <i class="fa-solid fa-eye"></i>
                   </a>
-                  <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                          th:data-bs-target="'#updateStatusModal' + ${order.orderId}">
+                  <a th:href="@{'/admin/update-order-status?orderId=' + ${order.orderId}}" class="btn btn-success btn-sm">
                     <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
-
-                  <!-- Modal for Status Update -->
-                  <div class="modal fade" th:id="'updateStatusModal' + ${order.orderId}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title">Update Order Status</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form th:action="@{/admin/update-order-status}" method="post">
-                          <div class="modal-body">
-                            <input type="hidden" name="orderId" th:value="${order.orderId}">
-                            <div class="mb-3">
-                              <label for="status" class="form-label">Status</label>
-                              <select class="form-select" name="status" id="status" required>
-                                <option value="In Progress" th:selected="${order.status == 'In Progress'}">In Progress</option>
-                                <option value="Shipped" th:selected="${order.status == 'Shipped'}">Shipped</option>
-                                <option value="Delivered" th:selected="${order.status == 'Delivered'}">Delivered</option>
-                                <option value="Completed" th:selected="${order.status == 'Completed'}">Completed</option>
-                                <option value="Cancelled" th:selected="${order.status == 'Cancelled'}">Cancelled</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+                  </a>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(orders)}">
+                <td colspan="8" class="text-center">No orders found.</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
-  <script>
-    $(document).ready(function() {
-      $('#ordersTable').DataTable({
-        "order": [[0, "desc"]], // Sort by order ID descending
-        "pageLength": 10,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        "language": {
-          "search": "Search orders:"
-        }
-      });
-    });
-  </script>
 </section>
 </body>
 </html>

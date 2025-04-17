@@ -18,9 +18,9 @@
 					<a th:href="@{'/admin/add-category'}" class="btn btn-danger mb-3">Add Category</a>
 				</div>
 			</div>
-			
+
 			<div class="row">
-				
+
 				<!-- <div class="col-md-4">
 					<div class="card custom-card-shadow">
 						<div class="card-header text-center">
@@ -98,9 +98,9 @@
 										<th scope="col">Actions</th>
 									</tr>
 								</tfoot> -->
-								
+
 								<!-- <tbody id="example" class="display" cellspacing="0" width="100%">
-									
+
 								</tbody> -->
 
 
@@ -114,7 +114,7 @@
 										<!-- <td th:text="${category.categoryImage}"></td> -->
 										<td th:text="${formattedDateTimeCreatedAt}"></td>
 										<td>
-										&nbsp; <a th:href="@{'/admin/edit-category/'+${category.id}}" class="btn btn-info btn-sm"><i class="fa-solid fa-pen-to-square text-decoration-none"></i></a>&nbsp; &nbsp; 
+										&nbsp; <a th:href="@{'/admin/edit-category/'+${category.id}}" class="btn btn-info btn-sm"><i class="fa-solid fa-pen-to-square text-decoration-none"></i></a>&nbsp; &nbsp;
 										<a th:href="@{'/admin/delete-category/'+${category.id}}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure want to delete this?');"><i class="fa-solid fa-trash text-decoration-none"></i></a>
 										</td>
 										<!-- <td><a
@@ -126,7 +126,7 @@
 										</td> -->
 									</tr>
 								</tbody>
-	
+
 							</table>
 						</div>
 					</div>
@@ -138,7 +138,7 @@
 		 $(document).ready(function() {
 		        $('#categoryTable').DataTable();
 		    });
-			
+
 		</script>
 
 	</section>

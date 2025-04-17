@@ -164,6 +164,26 @@ CREATE TABLE `product_order` (
   CONSTRAINT `FKh73acsd9s5wp6l0e55td6jr1m` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO product_order (
+    order_date,
+    order_id,
+    payment_type,
+    price,
+    quantity,
+    status,
+    product_id,
+    user_id
+)
+VALUES (
+           NOW(), -- ou '2025-04-17 15:30:00'
+           'ORD20250417001',
+           'Credit Card',
+           25.49,
+           2,
+           'Pending',
+           2,  -- ID du produit
+           1   -- ID de l'utilisateur
+       );
 
 --
 -- Dumping data for table `product_order`

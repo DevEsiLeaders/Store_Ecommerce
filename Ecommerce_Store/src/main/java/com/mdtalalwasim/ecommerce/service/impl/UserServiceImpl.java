@@ -21,7 +21,7 @@ public class UserServiceImpl implements UserService{
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-	
+
 
 	@Override
 	public User saveUser(User user) {
@@ -90,10 +90,10 @@ public class UserServiceImpl implements UserService{
 		System.out.println("Account LockTime: "+accountLockTime);
 		long  accountUnlockTime = accountLockTime+ AppConstant.UNLOCK_DURATION_TIME;
 		System.out.println("Account Unlock Time :"+accountUnlockTime);
-		
+
 		long currentTime = System.currentTimeMillis();
 		System.out.println("currentTime :"+currentTime);
-		
+
 		if(accountUnlockTime < currentTime) {
 			user.setAccountStatusNonLocked(true);
 			user.setAccountfailedAttemptCount(0);
@@ -101,7 +101,7 @@ public class UserServiceImpl implements UserService{
 			userRepository.save(user);
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService{
 		User user = userRepository.findByEmail(email);
 		user.setResetTokens(resetToken);
 		userRepository.save(user);
-		
+
 	}
 
 	@Override
@@ -130,9 +130,8 @@ public class UserServiceImpl implements UserService{
 		// TODO Auto-generated method stub
 		return userRepository.save(userByToken);
 	}
-	
-	
+
+
 
 }
-
 

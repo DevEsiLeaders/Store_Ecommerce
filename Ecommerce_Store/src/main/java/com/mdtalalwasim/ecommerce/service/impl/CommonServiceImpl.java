@@ -15,10 +15,10 @@ public class CommonServiceImpl implements CommonService {
 	public void removeSessionMessage() {
 		HttpServletRequest request = ((ServletRequestAttributes)(RequestContextHolder.getRequestAttributes())).getRequest();
 		HttpSession session = request.getSession();
-		
+
 		session.removeAttribute("successMsg");
 		session.removeAttribute("errorMsg");
-		
+
 	}
 
 }

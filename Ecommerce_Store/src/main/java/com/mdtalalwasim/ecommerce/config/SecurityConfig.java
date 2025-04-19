@@ -15,24 +15,24 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 @Configuration
 public class SecurityConfig {
-	
+
 	@Autowired
 	AuthenticationSuccessHandler authenticationSuccessHandler;
-	
+
 	@Autowired
 	@Lazy
 	AuthenticationFailureHandler authenticationFailureHandler;
-	
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 	@Bean
 	public UserDetailsService userDetailsService() {
 		return new UserDetailsServiceImpl();
 	}
-	
+
 	//for authentication : userDetails and Password
 	@Bean
 	public DaoAuthenticationProvider authenticationProvider() {
@@ -40,28 +40,28 @@ public class SecurityConfig {
 		authenticationProvider.setUserDetailsService(userDetailsService());
 		authenticationProvider.setPasswordEncoder(passwordEncoder());
 		return authenticationProvider;
-		
+
 	}
-	
+
 	//which role can get which access:
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable())
-		.cors(cors->cors.disable())
-		.authorizeHttpRequests(req-> req.requestMatchers("/user/**").hasRole("USER")
-		.requestMatchers("/admin/**").hasRole("ADMIN")
-		.requestMatchers("/**").permitAll())
-		.formLogin(form-> form.loginPage("/signin")
-				.loginProcessingUrl("/login")
-				//.defaultSuccessUrl("/")//before implements authenticationsSuccessHandler.
-				//after implementation authenticationsSuccessHandler -> call successHandler 
-				.failureHandler(authenticationFailureHandler)
-				.successHandler(authenticationSuccessHandler))
-				
-		.logout(logout->logout.permitAll());
+				.cors(cors->cors.disable())
+				.authorizeHttpRequests(req-> req.requestMatchers("/user/**").hasRole("USER")
+						.requestMatchers("/admin/**").hasRole("ADMIN")
+						.requestMatchers("/**").permitAll())
+				.formLogin(form-> form.loginPage("/signin")
+						.loginProcessingUrl("/login")
+						//.defaultSuccessUrl("/")//before implements authenticationsSuccessHandler.
+						//after implementation authenticationsSuccessHandler -> call successHandler
+						.failureHandler(authenticationFailureHandler)
+						.successHandler(authenticationSuccessHandler))
+
+				.logout(logout->logout.permitAll());
 		return http.build();
-		
+
 	}
-	
-	
+
+
 }

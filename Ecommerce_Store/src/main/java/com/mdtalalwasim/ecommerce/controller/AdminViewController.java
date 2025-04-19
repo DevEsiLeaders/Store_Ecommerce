@@ -105,7 +105,8 @@ public class AdminViewController {
 			}else {
 				
 				File saveFile = new ClassPathResource("static/img").getFile();
-				Path path = Paths.get(saveFile.getAbsolutePath()+File.separator+"category"+File.separator+file.getOriginalFilename());
+                assert file != null;
+                Path path = Paths.get(saveFile.getAbsolutePath()+File.separator+"category"+File.separator+file.getOriginalFilename());
 				System.out.println("File save Path :"+path);
 				
 				Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
@@ -247,7 +248,8 @@ public class AdminViewController {
 			File savefile = new ClassPathResource("static/img").getFile();
 			Path path = Paths.get(savefile.getAbsolutePath()+File.separator+"product_image"+File.separator+imageName);
 			System.out.println("File save Path :"+path);
-			Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+            assert file != null;
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 			session.setAttribute("successMsg", "Product Save Successfully.");
 		}else {
 			session.setAttribute("errorMsg", "Something Wrong on server while save Product");
@@ -327,7 +329,7 @@ public class AdminViewController {
 	@GetMapping("/edit-user-status")
 	public String editUser(@RequestParam("status") Boolean status, @RequestParam("id") Long id, Model model, HttpSession session) {
 		Boolean updateUserStatus = userService.updateUserStatus(status,id);
-		if(updateUserStatus == true) {
+		if(updateUserStatus) {
 			session.setAttribute("successMsg", "User Status Updated Successfully.");
 		}
 		else {

@@ -195,7 +195,7 @@ public class HomeViewController {
 			//Boolean isEmailSendToUser = CommonUtils.sendEmail(url, email);
 			Boolean isEmailSendToUser = commonUtils.sendEmail(url, email);
 			
-			if(isEmailSendToUser == true) {
+			if(isEmailSendToUser) {
 				session.setAttribute("successMsg", "Please check your email, Password Reset Link has been sent to your email.");
 			}else {
 				session.setAttribute("errorMsg", "Something wrong on server. Email Not Sent!");

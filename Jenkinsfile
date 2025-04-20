@@ -3,7 +3,7 @@ pipeline {
     
     tools {
         maven 'maven' // Assure-toi que 'maven' est configuré dans Jenkins
-        jdk 'jdk1.8.0_151' // Assure-toi que JDK est correctement configuré
+        jdk 'JDK' // Assure-toi que JDK est correctement configuré
     }
     
     stages {

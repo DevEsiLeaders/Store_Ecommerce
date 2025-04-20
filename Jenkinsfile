@@ -28,7 +28,9 @@ pipeline {
             }
             post {
                 success {
-                    junit 'Ecommerce_store/target/surefire-reports/**/*.xml'
+                     dir('Ecommerce_store') {
+                            junit 'Ecommerce_store/target/surefire-reports/**/*.xml'
+                     }
                 }
             }
         }
@@ -37,7 +39,7 @@ pipeline {
             steps {
                 dir('Ecommerce_store') {
                     bat 'mvn pmd:pmd'
-                    // bat 'mvn checkstyle:checkstyle'  // Uncomment if using Checkstyle
+                    bat 'mvn checkstyle:checkstyle'  
                 }
             }
         }
@@ -80,7 +82,7 @@ pipeline {
             steps {
                 dir('Ecommerce_store') {
                     echo 'Publishing to Nexus repository'
-                    // bat 'mvn deploy'  // Uncomment when Nexus is configured
+                    bat 'mvn deploy' 
                 }
             }
         }
@@ -114,7 +116,7 @@ pipeline {
         }
         failure {
             echo 'Pipeline failed!'
-            // mail to: 'team@example.com', subject: 'Pipeline Failed', body: 'Please check the build'
+            mail to: 'sohaybelbakali@gmail.com', subject: 'Pipeline Failed', body: 'Please check the build'
         }
     }
 }

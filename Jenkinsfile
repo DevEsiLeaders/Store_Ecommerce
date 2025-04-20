@@ -1,27 +1,33 @@
 pipeline {
     agent any
-    
+
     tools {
         maven 'maven'
         jdk 'JDK'
     }
-    
+
     stages {
-        // Étape initiale
         stage('Start') {
             steps {
                 echo 'Démarrage du workflow CI/CD'
             }
         }
-        
-        // Scrutation SCM
-        stage('ScrutationSCM') {
+
+        // Checkout avec credentials GitHub
+        stage('Checkout') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/develop']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Badrbernane/Store_Ecommerce.git',
+                        credentialsId: 'github-token' 
+                    ]]
+                ])
             }
         }
-        
-        // Construction avec Maven uniquement (Gradle retiré comme demandé)
+
         stage('Build') {
             steps {
                 dir('Ecommerce_Store') {
@@ -36,8 +42,7 @@ pipeline {
                 }
             }
         }
-        
-        // Tests
+
         stage('Test') {
             parallel {
                 stage('JUnit') {
@@ -57,8 +62,7 @@ pipeline {
                 }
             }
         }
-        
-        // Analyse du code
+
         stage('Analyse du code') {
             parallel {
                 stage('PMD') {
@@ -77,8 +81,7 @@ pipeline {
                 }
             }
         }
-        
-        // Documentation
+
         stage('JavaDoc') {
             steps {
                 dir('Ecommerce_Store') {
@@ -86,8 +89,7 @@ pipeline {
                 }
             }
         }
-        
-        // Packaging
+
         stage('Packaging') {
             steps {
                 dir('Ecommerce_Store') {
@@ -96,8 +98,7 @@ pipeline {
                 }
             }
         }
-        
-        // Archivage
+
         stage('Archivage') {
             steps {
                 dir('Ecommerce_Store') {
@@ -105,8 +106,7 @@ pipeline {
                 }
             }
         }
-        
-        // Déploiement
+
         stage('Déploiement') {
             parallel {
                 stage('Nexus') {
@@ -116,7 +116,6 @@ pipeline {
                         }
                     }
                 }
-                // Stage Docker désactivé
                 /*
                 stage('Publication de l\'image') {
                     steps {
@@ -133,15 +132,14 @@ pipeline {
                 */
             }
         }
-        
-        // Étape finale
+
         stage('End') {
             steps {
                 echo 'Workflow CI/CD terminé avec succès'
             }
         }
     }
-    
+
     post {
         always {
             cleanWs()
@@ -151,7 +149,7 @@ pipeline {
                 to: 'sohaybelbakali@gmail.com',
                 subject: "Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """Le pipeline a réussi.
-                
+
 Détails:
 Job: ${JOB_NAME}
 Build: #${BUILD_NUMBER}
@@ -163,7 +161,7 @@ URL: ${BUILD_URL}"""
                 to: 'sohaybelbakali@gmail.com',
                 subject: "ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
-                
+
 Détails:
 Job: ${JOB_NAME}
 Build: #${BUILD_NUMBER}
@@ -175,3 +173,4 @@ Veuillez corriger les problèmes."""
         }
     }
 }
+

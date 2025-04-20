@@ -29,7 +29,7 @@ pipeline {
             post {
                 success {
                      dir('Ecommerce_store') {
-                            junit 'Ecommerce_store/target/surefire-reports/**/*.xml'
+                        junit 'Ecommerce_store/target/surefire-reports/**/*.xml'
                      }
                 }
             }

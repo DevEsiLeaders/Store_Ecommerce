@@ -125,7 +125,8 @@ pipeline {
                     }
                 }
                 
-                // Publication de l'image Docker
+                // Publication de l'image Docker - Désactivée
+                /* 
                 stage('Publication de l\'image') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -138,6 +139,7 @@ pipeline {
                         }
                     }
                 }
+                */
             }
         }
         

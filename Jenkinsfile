@@ -40,7 +40,6 @@ pipeline {
         // Tests
         stage('Test') {
             parallel {
-                // Tests unitaires JUnit (déjà exécutés dans le build)
                 stage('JUnit') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -48,8 +47,6 @@ pipeline {
                         }
                     }
                 }
-                
-                // Tests de performance
                 stage('Performance testing') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -64,7 +61,6 @@ pipeline {
         // Analyse du code
         stage('Analyse du code') {
             parallel {
-                // Analyse PMD
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -72,8 +68,6 @@ pipeline {
                         }
                     }
                 }
-                
-                // Checkstyle
                 stage('Checkstyle') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -108,7 +102,6 @@ pipeline {
             steps {
                 dir('Ecommerce_Store') {
                     echo 'Archivage des artefacts'
-                    // Commandes d'archivage supplémentaires si nécessaire
                 }
             }
         }
@@ -116,7 +109,6 @@ pipeline {
         // Déploiement
         stage('Déploiement') {
             parallel {
-                // Publication sur Nexus
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -124,9 +116,8 @@ pipeline {
                         }
                     }
                 }
-                
-                // Publication de l'image Docker - Désactivée
-                /* 
+                // Stage Docker désactivé
+                /*
                 stage('Publication de l\'image') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -155,10 +146,22 @@ pipeline {
         always {
             cleanWs()
         }
+        success {
+            emailext (
+                to: 'sohaybelbakali@gmail.com',
+                subject: "Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """Le pipeline a réussi.
+                
+Détails:
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+URL: ${BUILD_URL}"""
+            )
+        }
         failure {
             emailext (
                 to: 'sohaybelbakali@gmail.com',
-                subject: 'ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}',
+                subject: "ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
                 
 Détails:
@@ -166,8 +169,8 @@ Job: ${JOB_NAME}
 Build: #${BUILD_NUMBER}
 URL: ${BUILD_URL}
 
-Veuillez corriger les problèmes.""",
-                attachLog: true
+Veuillez corriger les problèmes."""
+                , attachLog: true
             )
         }
     }

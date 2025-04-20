@@ -21,7 +21,9 @@ pipeline {
             }
             post {
                 success {
-                    junit 'target/surefire-reports/**/*.xml'
+                    dir('Ecommerce_Store') {
+                        junit 'target/surefire-reports/**/*.xml'
+                    }
                 }
             }
         }

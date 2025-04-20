@@ -15,7 +15,7 @@ pipeline {
         stage('Build') {
             steps {
                 // Naviguer dans le dossier 'ecommerce_store' avant d'exécuter Maven
-                dir('ecommerce_store') {
+                dir('Ecommerce_Store') {
                     bat 'mvn install'
                 }
             }

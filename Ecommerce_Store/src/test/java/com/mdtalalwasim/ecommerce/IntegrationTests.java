@@ -9,7 +9,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class IntegrationTests {
+  class IntegrationTests {
 
 	@LocalServerPort
 	private int port;
@@ -18,7 +18,7 @@ public class IntegrationTests {
 	private TestRestTemplate restTemplate;
 
 	@Test
-	public void homePageShouldReturnOkStatus() {
+	void homePageShouldReturnOkStatus() {
 		var response = this.restTemplate.getForEntity("http://localhost:" + port + "/", String.class);
 
 		// Afficher le status HTTP

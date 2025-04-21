@@ -13,7 +13,7 @@
 
 	<groupId>com.mdtalalwasim.ecommerce</groupId>
 	<artifactId>Ecommerce_Store</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.4.0-SNAPSHOT</version>
 	<name>Ecommerce_Store</name>
 	<description>Ecommerce Spring boot project for online shopping.</description>
 	<packaging>war</packaging>

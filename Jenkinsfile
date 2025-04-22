@@ -6,19 +6,15 @@ pipeline {
         jdk 'JDK'
     }
 
-    environment {
-        DOCKER_IMAGE_NAME = "ecommerce-store"
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials_id') // 🔐 ID à configurer dans Jenkins > Credentials
-    }
-
     stages {
         stage('Start') {
             steps {
-                echo '🚀 Démarrage du pipeline CI/CD'
+                echo 'Démarrage du workflow CI/CD'
             }
         }
 
-        stage('ScrutationSCM') {
+        // Checkout avec credentials GitHub
+        stage('Checkout') {
             steps {
                 checkout([
                     $class: 'GitSCM',
@@ -26,24 +22,22 @@ pipeline {
                     extensions: [],
                     userRemoteConfigs: [[
                         url: 'https://github.com/Badrbernane/Store_Ecommerce.git',
-                        credentialsId: 'github-token'
+                        credentialsId: 'github-token' 
                     ]]
                 ])
             }
         }
 
         stage('Build') {
-            parallel {
-                stage('Build With Maven') {
-                    steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn clean install -DskipTests'
-                        }
-                    }
+            steps {
+                dir('Ecommerce_Store') {
+                    bat 'mvn clean install'
                 }
-                stage('Build With Gradle') {
-                    steps {
-                        echo 'Gradle non utilisé dans ce projet'
+            }
+            post {
+                success {
+                    dir('Ecommerce_Store') {
+                        junit 'target/surefire-reports/*.xml'
                     }
                 }
             }
@@ -54,20 +48,16 @@ pipeline {
                 stage('JUnit') {
                     steps {
                         dir('Ecommerce_Store') {
-                            echo '📋 Génération des rapports JUnit'
-                            bat 'mvn test'
-                            junit 'target/surefire-reports/*.xml'
+                            echo 'Rapports JUnit déjà générés'
                         }
-                    }
-                }
-                stage('Functional testing') {
-                    steps {
-                        echo '🔍 Tests fonctionnels manquants — à définir si besoin'
                     }
                 }
                 stage('Performance testing') {
                     steps {
-                        echo '⚙️ Exécution des tests de performance (placeholder)'
+                        dir('Ecommerce_Store') {
+                            echo 'Exécution des tests de performance'
+                            // Ajouter commandes JMeter/Gatling ici
+                        }
                     }
                 }
             }
@@ -75,17 +65,17 @@ pipeline {
 
         stage('Analyse du code') {
             parallel {
-                stage('Checkstyle') {
-                    steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn checkstyle:checkstyle'
-                        }
-                    }
-                }
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
                             bat 'mvn pmd:pmd'
+                        }
+                    }
+                }
+                stage('Checkstyle') {
+                    steps {
+                        dir('Ecommerce_Store') {
+                            bat 'mvn checkstyle:checkstyle'
                         }
                     }
                 }
@@ -103,13 +93,21 @@ pipeline {
         stage('Packaging') {
             steps {
                 dir('Ecommerce_Store') {
-                    echo '📦 Packaging de l’application'
+                    echo 'Génération du package'
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }
         }
 
         stage('Archivage') {
+            steps {
+                dir('Ecommerce_Store') {
+                    echo 'Archivage des artefacts'
+                }
+            }
+        }
+
+        stage('Déploiement') {
             parallel {
                 stage('Nexus') {
                     steps {
@@ -118,48 +116,26 @@ pipeline {
                         }
                     }
                 }
-                stage('Artifactory') {
+                /*
+                stage('Publication de l\'image') {
                     steps {
-                        echo '📦 Publication vers Artifactory (placeholder si utilisé)'
+                        dir('Ecommerce_Store') {
+                            script {
+                                docker.build("ecommerce-image", ".")
+                                docker.withRegistry('https://your-registry', 'docker-creds') {
+                                    docker.image("ecommerce-image").push()
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        }
-
-        // 👇 Étape pour forcer le bon contexte Docker
-        stage('Use Docker Context') {
-            steps {
-                bat 'docker context use desktop-linux'
-            }
-        }
-
-        stage('Déploiement') {
-            steps {
-                dir('Ecommerce_Store') {
-                    script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        echo "🔧 Construction de l’image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        dockerImage = docker.build("sohayb2004/${DOCKER_IMAGE_NAME}:${tag}")
-                    }
-                }
-            }
-        }
-
-        // 👇 Étape pour pousser l’image Docker sur DockerHub
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    echo "📤 Pushing image vers DockerHub..."
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        dockerImage.push()
-                    }
-                }
+                */
             }
         }
 
         stage('End') {
             steps {
-                echo '✅ Pipeline CI/CD terminé avec succès !'
+                echo 'Workflow CI/CD terminé avec succès'
             }
         }
     }
@@ -169,31 +145,30 @@ pipeline {
             cleanWs()
         }
         success {
-            emailext(
+            emailext (
                 to: 'sohaybelbakali@gmail.com',
-                subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
-                body: """
-Le pipeline s'est terminé avec succès.
+                subject: "Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """Le pipeline a réussi.
 
-🔧 Job: ${JOB_NAME}
-🔢 Build: #${BUILD_NUMBER}
-🔗 URL: ${BUILD_URL}
-"""
+Détails:
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+URL: ${BUILD_URL}"""
             )
         }
         failure {
-            emailext(
+            emailext (
                 to: 'sohaybelbakali@gmail.com',
-                subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
-                body: """
-Le pipeline a échoué à l'étape ${currentBuild.currentResult}. 
+                subject: "ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+                body: """Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
 
-🔧 Job: ${JOB_NAME}
-🔢 Build: #${BUILD_NUMBER}
-🔗 URL: ${BUILD_URL}
+Détails:
+Job: ${JOB_NAME}
+Build: #${BUILD_NUMBER}
+URL: ${BUILD_URL}
 
-Veuillez consulter le journal en pièce jointe pour les détails.
-""", attachLog: true
+Veuillez corriger les problèmes."""
+                , attachLog: true
             )
         }
     }

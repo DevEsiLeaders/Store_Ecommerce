@@ -155,19 +155,44 @@ pipeline {
             steps {
                 dir('Ecommerce_Store') {
                     script {
+                        def tag          = "${env.BUILD_NUMBER}"
+                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+
+                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                        def dockerImage = null
+                        try {
+                            dockerImage = docker.build(fullImageTag)
+                            echo "✅ [Docker] Image construite : ${dockerImage.id}"
+                        } catch (err) {
+                            echo "❌ [Docker] Erreur de build : ${err}"
+                        }
+
+                        // Credentials binding
                         withCredentials([usernamePassword(
                             credentialsId: 'dockerhub-credentials',
-                            usernameVariable: 'DOCKER_USER',
-                            passwordVariable: 'DOCKER_PASS'
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
                         )]) {
-                            // handles login/logout automatically
-                            docker.withRegistry("${env.DOCKER_REGISTRY_URL}", 'dockerhub-credentials') {
-                                def fullImageName = "${DOCKER_USER}/${DOCKER_IMAGE_NAME}:${BUILD_NUMBER}"
-                                echo "🔧 [Docker] Building ${fullImageName}"
-                                def image = docker.build(fullImageName)
-                                echo "🚀 [Docker] Pushing ${fullImageName}"
-                                image.push()
-                                echo "✅ [Docker] Push succeeded"
+                            // Login step
+                            try {
+                                echo "🔑 [Docker] Login (${env.DOCKER_REGISTRY_URL})"
+                                bat """
+                                    echo %DOCKER_PASSWORD% | docker login ${env.DOCKER_REGISTRY_URL} -u %DOCKER_USERNAME% --password-stdin
+                                """
+                                echo "✅ [Docker] Login réussi"
+                            } catch (err) {
+                                echo "⚠ [Docker] Login échoué : ${err}"
+                            }
+
+                            // Push step with retry
+                            try {
+                                retry(3) {
+                                    echo "🚀 [Docker] Tentative de push (${currentBuild.retryCount ?: 1}/3)"
+                                    bat "docker push ${fullImageTag}"
+                                }
+                                echo "✅ [Docker] Push réussi"
+                            } catch (err) {
+                                echo "⚠ [Docker] Push échoué après 3 tentatives : ${err}"
                             }
                         }
                     }

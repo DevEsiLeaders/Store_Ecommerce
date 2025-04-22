@@ -98,7 +98,7 @@ pipeline {
         stage('Packaging') {
             steps {
                 dir('Ecommerce_Store') {
-                    echo '📦 Packaging de l'application'
+                    echo "📦 Packaging de l'application"
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }

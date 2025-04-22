@@ -1,0 +1,22 @@
+# .dockerignore
+
+# Ignore all files by default
+*
+
+# Allow these specific files/directories
+!src/
+!pom.xml
+!mvnw*
+!.mvn/
+!target/*.jar  # Only allow the final JAR
+
+# Explicit exclusions (override the above)
+.git/
+.idea/
+target/classes/
+target/generated-sources/
+*.iml
+*.log
+*.md
+Dockerfile
+docker-compose.yml

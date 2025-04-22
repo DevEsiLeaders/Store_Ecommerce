@@ -147,8 +147,7 @@ pipeline {
                         // Additional visual feedback
                         echo "✅ Image Docker construite avec succès: ${dockerImage.id}"
                         
-                        // Optionally display docker images (for debugging)
-                        sh(script: "docker images | grep ${DOCKER_IMAGE_NAME}", returnStdout: true).trim()
+                       
                     }
                 }
             }

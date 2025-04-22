@@ -11,7 +11,8 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE_NAME = "ecommerce-store"
+        DOCKER_IMAGE_NAME    = "ecommerce-store"
+        DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
     }
 
     stages {
@@ -25,10 +26,10 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/develop']],
+                    branches: [[ name: '*/develop' ]],
                     extensions: [],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/Badrbernane/Store_Ecommerce.git',
+                        url:          'https://github.com/Badrbernane/Store_Ecommerce.git',
                         credentialsId: 'github-token'
                     ]]
                 ])
@@ -79,11 +80,35 @@ pipeline {
                             bat 'mvn checkstyle:checkstyle'
                         }
                     }
+                    post {
+                        always {
+                            publishHTML(target: [
+                                allowMissing:           false,
+                                alwaysLinkToLastBuild:  true,
+                                keepAll:                true,
+                                reportDir:              'Ecommerce_Store/target/site',
+                                reportFiles:            'checkstyle.html',
+                                reportName:             'Checkstyle Report'
+                            ])
+                        }
+                    }
                 }
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
                             bat 'mvn pmd:pmd'
+                        }
+                    }
+                    post {
+                        always {
+                            publishHTML(target: [
+                                allowMissing:           false,
+                                alwaysLinkToLastBuild:  true,
+                                keepAll:                true,
+                                reportDir:              'Ecommerce_Store/target/site',
+                                reportFiles:            'pmd.html',
+                                reportName:             'PMD Report'
+                            ])
                         }
                     }
                 }
@@ -124,18 +149,35 @@ pipeline {
                     }
                 }
             }
-        } // ← Added missing closure for stage('Archivage')
+        }
 
         stage('Déploiement Docker') {
             steps {
                 dir('Ecommerce_Store') {
                     script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        echo "🔧 Construction de l'image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        echo "🐳 Docker build en cours..."
-                        echo "📦 Utilisation du Dockerfile présent dans: ${WORKSPACE}/Ecommerce_Store"
-                        def dockerImage = docker.build("${DOCKER_IMAGE_NAME}:${tag}")
-                        echo "✅ Image Docker construite avec succès: ${dockerImage.id}"
+                        def tag          = "${env.BUILD_NUMBER}"
+                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+
+                        echo "🔧 Construction de l'image Docker : ${fullImageTag}"
+                        def dockerImage = docker.build(fullImageTag)
+                        echo "✅ Image construite : ${dockerImage.id}"
+
+                        // bind your Docker Hub credentials
+                        withCredentials([usernamePassword(
+                            credentialsId: 'dockerhub-credentials',
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )]) {
+                            // retry push up to 3 times
+                            retry(3) {
+                                echo "🚀 Login to Docker registry (attempt ${currentBuild.retryCount ?: 1}/3)"
+                                // on Windows agent
+                                bat """
+                                    echo %DOCKER_PASSWORD% | docker login ${env.DOCKER_REGISTRY_URL} -u %DOCKER_USERNAME% --password-stdin
+                                    docker push ${fullImageTag}
+                                """
+                            }
+                        }
                     }
                 }
             }
@@ -154,7 +196,7 @@ pipeline {
         }
         success {
             emailext(
-                to: 'sohaybelbakali@gmail.com',
+                to:      'sohaybelbakali@gmail.com',
                 subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
 Le pipeline s'est terminé avec succès.
@@ -167,7 +209,7 @@ Le pipeline s'est terminé avec succès.
         }
         failure {
             emailext(
-                to: 'sohaybelbakali@gmail.com',
+                to:      'sohaybelbakali@gmail.com',
                 subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
 Le pipeline a échoué à l'étape ${currentBuild.currentResult}.

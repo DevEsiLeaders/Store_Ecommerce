@@ -122,12 +122,6 @@ pipeline {
                             bat 'mvn deploy'
                         }
                     }
-                }
-                stage('Artifactory') {
-                    steps {
-                        echo '📦 Publication vers Artifactory (placeholder si utilisé)'
-                    }
-                }
             }
         }
 

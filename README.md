@@ -1,4 +1,4 @@
-**Ecommerce Store** is a online shopping project built with **Java Spring Boot MVC** and **Thymeleaf**. This web application provides a good user experience through a frontend developed with **HTML, CSS, JavaScript,** and **jQuery**, including powerful **jQuery DataTables** for enhanced data management.
+**Ecommerce Store** is a online shopping project built with **Java Spring Boot MVC** and  **Thymeleaf**. This web application provides a good user experience through a frontend developed with **HTML, CSS, JavaScript,** and **jQuery**, including powerful **jQuery DataTables** for enhanced data management.
 
 The backend used **Spring Boot** for clean, structured code with a **service layer**, **Spring Data JPA** for efficient database operations using **MySQL**, and **Spring Security** to protect user data with **authentication** and **role-based authorization**. Optimized with **Lombok** to reduce boilerplate code, this project is packaged as a **WAR** file for easy deployment on any servlet container, like **Apache Tomcat**.
 

@@ -16,7 +16,7 @@ The backend used **Spring Boot** for clean, structured code with a **service lay
       - **MySQL:** Relational database used for data persistence.
       - **Spring Security:** Secure the application with user authentication and role-based authorization.
       - **Lombok:** Simplifies code with annotations to eliminate boilerplate code (like **getters**, **setters**, **constructors**).
-      - **Maven:** Build tool for project management and dependency management.
+      - **Maven:** Build tool for project management and dependency management .
       - **Java Mail Sender:** Send Email for Password Reset.
   
  - **Security Features:**

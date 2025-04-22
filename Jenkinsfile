@@ -142,7 +142,7 @@ pipeline {
                         echo "🔧 Construction de l'image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
                         
                         // More detailed output
-                        echo "🐳 Docker build en cours..."
+                        echo "🐳 Docker build en cours.."
                         echo "📦 Utilisation du Dockerfile présent dans: ${WORKSPACE}/Ecommerce_Store"
                         
                         // Build the image with more verbose output

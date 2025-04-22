@@ -126,17 +126,29 @@ pipeline {
             }
         }
 
-        stage('Déploiement') {
+        stage('Déploiement Docker') {
             steps {
                 dir('Ecommerce_Store') {
-                    script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        echo "🔧 Construction de l’image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        docker.build("${DOCKER_IMAGE_NAME}:${tag}")
-                    }
-                }
+            script {
+                def tag = "${env.BUILD_NUMBER}"
+                echo "🔧 Construction de l'image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
+                
+                // More detailed output
+                echo "🐳 Docker build en cours..."
+                echo "📦 Utilisation du Dockerfile présent dans: ${WORKSPACE}/Ecommerce_Store"
+                
+                // Build the image with more verbose output
+                def dockerImage = docker.build("${DOCKER_IMAGE_NAME}:${tag}")
+                
+                // Additional visual feedback
+                echo "✅ Image Docker construite avec succès: ${dockerImage.id}"
+                
+                // Optionally display docker images (for debugging)
+                sh(script: "docker images | grep ${DOCKER_IMAGE_NAME}", returnStdout: true).trim()
             }
         }
+    }
+}
 
         stage('End') {
             steps {

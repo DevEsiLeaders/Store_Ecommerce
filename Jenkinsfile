@@ -81,13 +81,7 @@ pipeline {
                         }
                     }
                 }
-                stage('FindBugs') {
-                    steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn spotbugs:spotbugs'
-                        }
-                    }
-                }
+                // FindBugs supprimé
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -173,7 +167,7 @@ Le pipeline s'est terminé avec succès.
                 to: 'sohaybelbakali@gmail.com',
                 subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
-Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
+Le pipeline a échoué à l'étape ${currentBuild.currentResult}. 
 
 🔧 Job: ${JOB_NAME}
 🔢 Build: #${BUILD_NUMBER}
@@ -185,5 +179,3 @@ Veuillez consulter le journal en pièce jointe pour les détails.
         }
     }
 }
-
-

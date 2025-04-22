@@ -81,7 +81,14 @@ pipeline {
                         }
                     }
                 }
-                // FindBugs supprimé
+                 stage('FindBugs') {
+                    steps {
+                        dir('Ecommerce_Store') {
+                        bat 'mvn findbugs:findbugs'
+                        archiveArtifacts artifacts: 'target/findbugsXml.xml'
+                            }
+                        }
+                }
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {

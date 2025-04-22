@@ -5,10 +5,10 @@ pipeline {
         maven 'maven'
         jdk 'JDK'
     }
-    
+
     triggers {
         githubPush()
-    }
+    }
 
     environment {
         DOCKER_IMAGE_NAME = "ecommerce-store"
@@ -80,7 +80,6 @@ pipeline {
                         }
                     }
                 }
-               
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -88,7 +87,6 @@ pipeline {
                         }
                     }
                 }
-                
                 stage('FindBugs') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -110,7 +108,6 @@ pipeline {
         stage('Packaging') {
             steps {
                 dir('Ecommerce_Store') {
-                    // Use double quotes to allow the apostrophe in "l'application"
                     echo "📦 Packaging de l'application"
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
@@ -140,18 +137,10 @@ pipeline {
                     script {
                         def tag = "${env.BUILD_NUMBER}"
                         echo "🔧 Construction de l'image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        
-                        // More detailed output
-                        echo "🐳 Docker build en cours.."
+                        echo "🐳 Docker build en cours..."
                         echo "📦 Utilisation du Dockerfile présent dans: ${WORKSPACE}/Ecommerce_Store"
-                        
-                        // Build the image with more verbose output
                         def dockerImage = docker.build("${DOCKER_IMAGE_NAME}:${tag}")
-                        
-                        // Additional visual feedback
                         echo "✅ Image Docker construite avec succès: ${dockerImage.id}"
-                        
-                       
                     }
                 }
             }
@@ -186,14 +175,15 @@ Le pipeline s'est terminé avec succès.
                 to: 'sohaybelbakali@gmail.com',
                 subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
-Le pipeline a échoué à l'étape ${currentBuild.currentResult}. 
+Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
 
 🔧 Job: ${JOB_NAME}
 🔢 Build: #${BUILD_NUMBER}
 🔗 URL: ${BUILD_URL}
 
 Veuillez consulter le journal en pièce jointe pour les détails.
-""", attachLog: true
+""",
+                attachLog: true
             )
         }
     }

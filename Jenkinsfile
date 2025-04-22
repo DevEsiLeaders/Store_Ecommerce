@@ -122,8 +122,9 @@ pipeline {
                             bat 'mvn deploy'
                         }
                     }
+                }
             }
-        }
+        } // ← Added missing closure for stage('Archivage')
 
         stage('Déploiement Docker') {
             steps {

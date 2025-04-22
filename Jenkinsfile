@@ -168,67 +168,57 @@ pipeline {
             }
         }
 
-        stage('Déploiement Docker') {
-            steps {
-                dir('Ecommerce_Store') {
-                    script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        echo "🔧 Construction de l'image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        
-                        // Build the Docker image
-                        bat "docker build -t ${DOCKER_IMAGE_NAME}:${tag} ."
-                        
-                        // Push with retries
-                        retry(3) {
-                            try {
-                                timeout(time: 2, unit: 'MINUTES') {
-                                    withCredentials([usernamePassword(
-                                        credentialsId: 'dockerhub-credentials',
-                                        usernameVariable: 'DOCKER_USERNAME',
-                                        passwordVariable: 'DOCKER_PASSWORD'
-                                    )]) {
-                                        // Logout first to avoid credential issues
-                                        bat 'docker logout'
-                                        
-                                        // Login and push
-                                        bat """
-                                            docker login -u "%DOCKER_USERNAME%" -p "%DOCKER_PASSWORD%"
-                                            docker tag ${DOCKER_IMAGE_NAME}:${tag} %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:${tag}
-                                            docker push %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:${tag}
-                                        """
-                                    }
-                                }
-                            } catch (Exception e) {
-                                echo "Échec de la poussée Docker: ${e.message}"
-                                sleep(time: 10, unit: 'SECONDS')
-                                error("Nouvelle tentative de poussée")
+       stage('Déploiement Docker') {
+    steps {
+        dir('Ecommerce_Store') {
+            script {
+                def tag = "${env.BUILD_NUMBER}"
+                
+                // Build with cache
+                bat "docker build --pull --cache-from %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:latest -t ${DOCKER_IMAGE_NAME}:${tag} ."
+                
+                // Push with layer-by-layer retries
+                retry(5) {
+                    try {
+                        timeout(time: 10, unit: 'MINUTES') {
+                            withCredentials([usernamePassword(
+                                credentialsId: 'dockerhub-creds',
+                                usernameVariable: 'DOCKER_USERNAME',
+                                passwordVariable: 'DOCKER_PASSWORD'
+                            )]) {
+                                bat '''
+                                    docker logout
+                                    docker login -u "%DOCKER_USERNAME%" -p "%DOCKER_PASSWORD%"
+                                    docker tag ${DOCKER_IMAGE_NAME}:${tag} %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:${tag}
+                                    
+                                    # Push manifest last
+                                    docker push %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:${tag}
+                                    
+                                    # Also tag as latest if this is main branch
+                                    if "%GIT_BRANCH%" == "origin/main" (
+                                        docker tag ${DOCKER_IMAGE_NAME}:${tag} %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:latest
+                                        docker push %DOCKER_USERNAME%/${DOCKER_IMAGE_NAME}:latest
+                                    )
+                                '''
                             }
                         }
-                        
-                        // Archive the Docker image even if push fails
-                        try {
-                            bat """
-                                mkdir -p target/docker-image
-                                docker save ${DOCKER_IMAGE_NAME}:${tag} -o target/docker-image/${DOCKER_IMAGE_NAME}.tar
-                            """
-                            archiveArtifacts artifacts: "target/docker-image/${DOCKER_IMAGE_NAME}.tar", fingerprint: true
-                            echo "Image Docker archivée comme artefact Jenkins"
-                        } catch (Exception e) {
-                            echo "Échec de l'archivage de l'image Docker: ${e.message}"
-                        }
+                    } catch (Exception e) {
+                        sleep(time: 30, unit: 'SECONDS')
+                        error("Push failed, retrying...")
                     }
                 }
-            }
-            post {
-                success {
-                    echo "Image Docker construite et poussée avec succès"
-                }
-                failure {
-                    echo "Échec du déploiement Docker, mais le pipeline continue"
-                    unstable(message: "Échec du déploiement Docker mais le pipeline continue")
-                }
+                
+                // Fallback: Save image locally
+                bat """
+                    mkdir -p target/docker-image
+                    docker save ${DOCKER_IMAGE_NAME}:${tag} -o target/docker-image/${DOCKER_IMAGE_NAME}.tar
+                    gzip target/docker-image/${DOCKER_IMAGE_NAME}.tar
+                """
+                archiveArtifacts artifacts: "target/docker-image/${DOCKER_IMAGE_NAME}.tar.gz", fingerprint: true
             }
         }
+    }
+}
 
         stage('End') {
             steps {

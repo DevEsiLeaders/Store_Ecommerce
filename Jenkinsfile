@@ -11,8 +11,9 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE_NAME    = "ecommerce-store"
-        DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
+        // include your DockerHub namespace
+        DOCKER_IMAGE_NAME   = "sohayb-elbakali/ecommerce-store"
+        DOCKER_REGISTRY_URL = "https://index.docker.io/v1/"
     }
 
     stages {
@@ -66,7 +67,7 @@ pipeline {
                 }
                 stage('Performance testing') {
                     steps {
-                        echo '⚙ Exécution des tests de performance (placeholder)'
+                        echo '⚙️ Exécution des tests de performance (placeholder)'
                     }
                 }
             }
@@ -155,46 +156,28 @@ pipeline {
             steps {
                 dir('Ecommerce_Store') {
                     script {
-                        def tag          = "${env.BUILD_NUMBER}"
-                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+                        // compute tags
+                        def tag        = "${env.BUILD_NUMBER}"
+                        def fullTag    = "${DOCKER_IMAGE_NAME}:${tag}"
 
-                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
-                        def dockerImage = null
-                        try {
-                            dockerImage = docker.build(fullImageTag)
-                            echo "✅ [Docker] Image construite : ${dockerImage.id}"
-                        } catch (err) {
-                            echo "❌ [Docker] Erreur de build : ${err}"
-                        }
+                        // build image
+                        echo "🔧 [Docker] Building image ${fullTag}"
+                        def img = docker.build(fullTag)
 
-                        // Credentials binding
+                        // push via the Docker Pipeline plugin helper
                         withCredentials([usernamePassword(
                             credentialsId: 'dockerhub-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )]) {
-                            // Login step
-                            try {
-                                echo "🔑 [Docker] Login (${env.DOCKER_REGISTRY_URL})"
-                                bat """
-                                    echo %DOCKER_PASSWORD% | docker login ${env.DOCKER_REGISTRY_URL} -u %DOCKER_USERNAME% --password-stdin
-                                """
-                                echo "✅ [Docker] Login réussi"
-                            } catch (err) {
-                                echo "⚠️ [Docker] Login échoué : ${err}"
-                            }
-
-                            // Push step with retry
-                            try {
-                                retry(3) {
-                                    echo "🚀 [Docker] Tentative de push (${currentBuild.retryCount ?: 1}/3)"
-                                    bat "docker push ${fullImageTag}"
-                                }
-                                echo "✅ [Docker] Push réussi"
-                            } catch (err) {
-                                echo "⚠️ [Docker] Push échoué après 3 tentatives : ${err}"
+                            docker.withRegistry("${DOCKER_REGISTRY_URL}", 'dockerhub-credentials') {
+                                echo "🚀 [Docker] Pushing ${fullTag}"
+                                img.push("${tag}")
+                                img.push('latest')
                             }
                         }
+
+                        echo "✅ [Docker] Image pushed: ${fullTag}"
                     }
                 }
             }

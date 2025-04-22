@@ -81,7 +81,6 @@ pipeline {
                         }
                     }
                 }
-                // FindBugs supprimé
                 stage('PMD') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -131,8 +130,17 @@ pipeline {
                 dir('Ecommerce_Store') {
                     script {
                         def tag = "${env.BUILD_NUMBER}"
+
+                        // ✅ Étape 1 : Construire une image Docker
                         echo "🔧 Construction de l’image Docker : ${DOCKER_IMAGE_NAME}:${tag}"
-                        docker.build("${DOCKER_IMAGE_NAME}:${tag}")
+                        def image = docker.build("${DOCKER_IMAGE_NAME}:${tag}")
+
+                        // ✅ Étape 2 : Publier l’image Docker sur Docker Hub
+                        withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
+                            echo "📤 Publication de l’image Docker vers Docker Hub"
+                            image.push("${tag}")
+                            image.push("latest")
+                        }
                     }
                 }
             }

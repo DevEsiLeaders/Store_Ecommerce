@@ -21,7 +21,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']],
+                    branches: [[name: '*/develop']],
                     extensions: [],
                     userRemoteConfigs: [[
                         url: 'https://github.com/Badrbernane/Store_Ecommerce.git',

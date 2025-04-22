@@ -29,7 +29,7 @@ pipeline {
                     branches: [[ name: '*/develop' ]],
                     extensions: [],
                     userRemoteConfigs: [[
-                        url:          'https://github.com/Badrbernane/Store_Ecommerce.git',
+                        url:           'https://github.com/Badrbernane/Store_Ecommerce.git',
                         credentialsId: 'github-token'
                     ]]
                 ])
@@ -83,12 +83,12 @@ pipeline {
                     post {
                         always {
                             publishHTML(target: [
-                                allowMissing:           false,
-                                alwaysLinkToLastBuild:  true,
-                                keepAll:                true,
-                                reportDir:              'Ecommerce_Store/target/site',
-                                reportFiles:            'checkstyle.html',
-                                reportName:             'Checkstyle Report'
+                                allowMissing:          false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll:               true,
+                                reportDir:             'Ecommerce_Store/target/site',
+                                reportFiles:           'checkstyle.html',
+                                reportName:            'Checkstyle Report'
                             ])
                         }
                     }
@@ -102,12 +102,12 @@ pipeline {
                     post {
                         always {
                             publishHTML(target: [
-                                allowMissing:           false,
-                                alwaysLinkToLastBuild:  true,
-                                keepAll:                true,
-                                reportDir:              'Ecommerce_Store/target/site',
-                                reportFiles:            'pmd.html',
-                                reportName:             'PMD Report'
+                                allowMissing:          false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll:               true,
+                                reportDir:             'Ecommerce_Store/target/site',
+                                reportFiles:           'pmd.html',
+                                reportName:            'PMD Report'
                             ])
                         }
                     }
@@ -158,24 +158,41 @@ pipeline {
                         def tag          = "${env.BUILD_NUMBER}"
                         def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
 
-                        echo "🔧 Construction de l'image Docker : ${fullImageTag}"
-                        def dockerImage = docker.build(fullImageTag)
-                        echo "✅ Image construite : ${dockerImage.id}"
+                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                        def dockerImage = null
+                        try {
+                            dockerImage = docker.build(fullImageTag)
+                            echo "✅ [Docker] Image construite : ${dockerImage.id}"
+                        } catch (err) {
+                            echo "❌ [Docker] Erreur de build : ${err}"
+                        }
 
-                        // bind your Docker Hub credentials
+                        // Credentials binding
                         withCredentials([usernamePassword(
                             credentialsId: 'dockerhub-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )]) {
-                            // retry push up to 3 times
-                            retry(3) {
-                                echo "🚀 Login to Docker registry (attempt ${currentBuild.retryCount ?: 1}/3)"
-                                // on Windows agent
+                            // Login step
+                            try {
+                                echo "🔑 [Docker] Login (${env.DOCKER_REGISTRY_URL})"
                                 bat """
                                     echo %DOCKER_PASSWORD% | docker login ${env.DOCKER_REGISTRY_URL} -u %DOCKER_USERNAME% --password-stdin
-                                    docker push ${fullImageTag}
                                 """
+                                echo "✅ [Docker] Login réussi"
+                            } catch (err) {
+                                echo "⚠️ [Docker] Login échoué : ${err}"
+                            }
+
+                            // Push step with retry
+                            try {
+                                retry(3) {
+                                    echo "🚀 [Docker] Tentative de push (${currentBuild.retryCount ?: 1}/3)"
+                                    bat "docker push ${fullImageTag}"
+                                }
+                                echo "✅ [Docker] Push réussi"
+                            } catch (err) {
+                                echo "⚠️ [Docker] Push échoué après 3 tentatives : ${err}"
                             }
                         }
                     }

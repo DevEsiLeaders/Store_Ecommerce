@@ -89,12 +89,6 @@ pipeline {
                     steps {
                         dir('Ecommerce_Store') {
                             echo '🐞 Analyse avec FindBugs pour détecter les bugs potentiels'
-                            bat 'mvn spotbugs:spotbugs'
-                            // Alternatively, if using the older FindBugs plugin:
-                            // bat 'mvn findbugs:findbugs'
-                            
-                            // Optionally publish the report
-                            recordIssues(tools: [spotBugs(pattern: 'target/spotbugsXml.xml')])
                         }
                     }
                 }

@@ -5,6 +5,10 @@ pipeline {
         maven 'maven'
         jdk 'JDK'
     }
+    
+    triggers {
+        githubPush()
+    }
 
     environment {
         DOCKER_IMAGE_NAME = "ecommerce-store"

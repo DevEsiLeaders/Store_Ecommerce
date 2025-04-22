@@ -112,7 +112,8 @@ pipeline {
         stage('Packaging') {
             steps {
                 dir('Ecommerce_Store') {
-                    echo '📦 Packaging de l'application'
+                    // Use double quotes to allow the apostrophe in "l'application"
+                    echo "📦 Packaging de l'application"
                     archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
                 }
             }

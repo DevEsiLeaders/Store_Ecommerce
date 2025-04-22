@@ -8,7 +8,7 @@ The backend used **Spring Boot** for clean, structured code with a **service lay
       -  **Thymeleaf:** Server-side Java templating engine for rendering dynamic HTML pages.
       - **HTML5/CSS3:** Responsive design for modern browsers and mobile devices.
       - **JavaScript & jQuery:** Enhance user interactivity with dynamic elements.
-      - **jQuery DataTables:** Efficient data handling and display with pagination, sorting, and search functionalities.
+      - **jQuery DataTables:** Efficient data handling and display with pagination , sorting, and search functionalities.
   
  - **Backend Technologies:**
       - **Java Spring Boot (3.3.2):** Core framework for the application backend, handling business logic and database interaction.

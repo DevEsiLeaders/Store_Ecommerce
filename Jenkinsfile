@@ -22,19 +22,7 @@ pipeline {
             }
         }
 
-        stage('ScrutationSCM') {
-            steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[ name: '*/develop' ]],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url:           'https://github.com/Badrbernane/Store_Ecommerce.git',
-                        credentialsId: 'github-token'
-                    ]]
-                ])
-            }
-        }
+        // Removed the ScrutationSCM stage as Jenkins will handle checkout automatically
 
         stage('Build') {
             parallel {
@@ -242,4 +230,3 @@ Veuillez consulter le journal en pièce jointe pour les détails.
         }
     }
 }
-

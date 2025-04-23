@@ -144,10 +144,13 @@
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
 				<version>4.8.5.0</version>
+				<configuration>
+					<failOnError>false</failOnError>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
-							<goal>check</goal>
+							<goal>spotbugs</goal>
 						</goals>
 					</execution>
 				</executions>

@@ -3,7 +3,7 @@
 The backend used **Spring Boot** for clean, structured code with a **service layer**, **Spring Data JPA** for efficient database operations using **MySQL**, and **Spring Security** to protect user data with **authentication** and **role-based authorization**. Optimized with **Lombok** to reduce boilerplate code, this project is packaged as a **WAR** file for easy deployment on any servlet container, like **Apache Tomcat**.
 
 # Features
-  - **Spring Boot MVC Architecture:** This project follows a well-organized architecture with Service, Repository, and Controller layers to ensure clean code, easy maintenance, and scalability.
+  - **Spring Boot MVC Architecture:** This project follows a well-organized architecture with Service , Repository, and Controller layers to ensure clean code, easy maintenance, and scalability.
   - **Frontend Technologies:**
       -  **Thymeleaf:** Server-side Java templating engine for rendering dynamic HTML pages.
       - **HTML5/CSS3:** Responsive design for modern browsers and mobile devices.

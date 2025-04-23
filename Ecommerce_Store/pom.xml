@@ -140,26 +140,18 @@
 				</configuration>
 			</plugin>
 
-                        <plugin>
-      <groupId>com.github.spotbugs</groupId>
-      <artifactId>spotbugs-maven-plugin</artifactId>
-      <version>4.7.3.0</version>
-      <executions>
-        <execution>
-          <goals>
-            <goal>spotbugs</goal>
-          </goals>
-        </execution>
-      </executions>
-      <configuration>
-        <!-- Empêche le plugin de faire échouer le build -->
-        <failOnError>false</failOnError>
-
-        <!-- options de génération de rapport -->
-        <xmlOutput>true</xmlOutput>
-        <outputDirectory>${project.build.directory}/spotbugs</outputDirectory>
-      </configuration>
-    </plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.8.5.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.jacoco</groupId>
@@ -209,7 +201,7 @@
 				</executions>
 			</plugin>
 
-			<!-- ✅ Plugin corrigé pour la compatibilité -->
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
@@ -256,6 +248,12 @@
 				<configuration>
 					<configLocation>google_checks.xml</configLocation>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>4.8.5.0</version>
 			</plugin>
 
 			<plugin>

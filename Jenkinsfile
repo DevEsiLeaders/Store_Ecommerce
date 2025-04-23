@@ -26,13 +26,18 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[ name: '*/develop' ]],
-                    extensions: [],
+                    branches: [[name: '*/develop']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [
+                    [$class: 'CloneOption', shallow: true, depth: 1, noTags: true] // ⏱️ clone rapide
+                        ],
                     userRemoteConfigs: [[
-                        url:           'https://github.com/Badrbernane/Store_Ecommerce.git',
-                        credentialsId: 'github-token'
+                    url: 'https://github.com/Badrbernane/Store_Ecommerce.git',
+                    credentialsId: 'github-token',
+                    refspec: '+refs/heads/develop:refs/remotes/origin/develop' // 👈 fetch spécifique
                     ]]
-                ])
+                    ])
+
             }
         }
 

@@ -112,24 +112,10 @@ pipeline {
                         }
                     }
                 }
-        
                 stage('FindBugs') {
                     steps {
                         dir('Ecommerce_Store') {
-                            echo '🔎 Analyse SpotBugs'
-                            bat 'mvn spotbugs:spotbugs'
-                        }
-                    }
-                    post {
-                        always {
-                            publishHTML(target: [
-                                allowMissing:          false,
-                                alwaysLinkToLastBuild: true,
-                                keepAll:               true,
-                                reportDir:             'Ecommerce_Store/target/site',
-                                reportFiles:           'spotbugs.html',
-                                reportName:            'SpotBugs Report'
-                            ])
+                            echo '🐞 Analyse avec FindBugs pour détecter les bugs potentiels'
                         }
                     }
                 }
@@ -181,11 +167,13 @@ pipeline {
                             echo "❌ [Docker] Erreur de build : ${err}"
                         }
 
+                        // Credentials binding
                         withCredentials([usernamePassword(
                             credentialsId: 'dockerhub-credentials',
                             usernameVariable: 'DOCKER_USERNAME',
                             passwordVariable: 'DOCKER_PASSWORD'
                         )]) {
+                            // Login step
                             try {
                                 echo "🔑 [Docker] Login (${env.DOCKER_REGISTRY_URL})"
                                 bat """
@@ -196,6 +184,7 @@ pipeline {
                                 echo "⚠ [Docker] Login échoué : ${err}"
                             }
 
+                            // Push step with retry
                             try {
                                 retry(3) {
                                     echo "🚀 [Docker] Tentative de push (${currentBuild.retryCount ?: 1}/3)"

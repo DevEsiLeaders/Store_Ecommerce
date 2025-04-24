@@ -163,17 +163,19 @@ pipeline {
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
-                             withCredentials([usernamePassword(
-                    credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
-                    usernameVariable: 'NEXUS_USERNAME',
-                    passwordVariable: 'NEXUS_PASSWORD')]) {
-                    // Example Maven command with batch mode, specifying the repos in settings
+                         withCredentials([
+                    usernamePassword(
+                        credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
+                        usernameVariable: 'NEXUS_USERNAME',
+                        passwordVariable: 'NEXUS_PASSWORD'
+                    )
+                ]) {
                     sh """
-                      mvn --batch-mode clean deploy \
-                        -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \
-                        -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \
-                        -DnexusUser=${NEXUS_USERNAME} \
-                        -DnexusPass=${NEXUS_PASSWORD}
+                        mvn --batch-mode clean deploy \
+                          -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \
+                          -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \
+                          -DnexusUser=${NEXUS_USERNAME} \
+                          -DnexusPass=${NEXUS_PASSWORD}
                     """
                         
                         }

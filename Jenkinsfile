@@ -26,7 +26,7 @@ s
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[ name: '*/develop' ]],
+                    branches: [[ name: '*/main' ]],
                     extensions: [],
                     userRemoteConfigs: [[
                         url:           'https://github.com/Badrbernane/Store_Ecommerce.git',

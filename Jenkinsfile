@@ -13,11 +13,11 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME    = "ecommerce-store"
         DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
-        // Nexus credentials (ID defined in Jenkins Credentials)
+        // Nexus credentials defined in Jenkins credentials store
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
-        // Nexus repository endpoints – replace with your Nexus domain
-        DEPLOY_REPO_URL      = 'http://your-nexus-domain:8081/repository/maven-releases/'
-        DEPLOY_SNAPSHOT_URL  = 'http://your-nexus-domain:8081/repository/maven-snapshots/'
+        // Change these URLs if your Nexus host is not localhost
+        DEPLOY_REPO_URL      = 'http://localhost:8081/repository/maven-releases/'
+        DEPLOY_SNAPSHOT_URL  = 'http://localhost:8081/repository/maven-snapshots/'
     }
 
     stages {
@@ -162,9 +162,9 @@ pipeline {
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
-                            // Fetch the settings.xml stored in Jenkins as a managed file.
+                            // Provide settings.xml stored in Jenkins as a managed file using its ID
                             configFileProvider([configFile(fileId: 'f48d6e64-fa5d-4d00-8e66-42dee63996d6', targetLocation: 'custom-settings.xml')]) {
-                                // Inject Nexus credentials.
+                                // Inject Nexus credentials from Jenkins credentials store
                                 withCredentials([
                                     usernamePassword(
                                         credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
@@ -206,10 +206,8 @@ pipeline {
                         )]) {
                             def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
                             bat "docker tag ${fullImageTag} ${namespaceImageTag}"
-                            
                             bat "docker logout"
                             bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                            
                             bat "docker push ${namespaceImageTag}"
                             echo "✅ [Docker] Push réussi"
                         }

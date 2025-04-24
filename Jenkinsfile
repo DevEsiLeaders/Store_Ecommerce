@@ -15,7 +15,7 @@ pipeline {
         DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
         // Nexus credentials defined in Jenkins credentials store
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
-        // Change these URLs if your Nexus host is not localhost
+        // Update these URLs as needed; using localhost here.
         DEPLOY_REPO_URL      = 'http://localhost:8081/repository/maven-releases/'
         DEPLOY_SNAPSHOT_URL  = 'http://localhost:8081/repository/maven-snapshots/'
     }
@@ -34,7 +34,7 @@ pipeline {
                     branches: [[ name: '*/main' ]],
                     extensions: [],
                     userRemoteConfigs: [[
-                        url:           'https://github.com/Badrbernane/Store_Ecommerce.git',
+                        url: 'https://github.com/Badrbernane/Store_Ecommerce.git',
                         credentialsId: 'github-token'
                     ]]
                 ])
@@ -162,7 +162,7 @@ pipeline {
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
-                            // Provide settings.xml stored in Jenkins as a managed file using its ID
+                            // Providing the managed settings.xml file from Jenkins
                             configFileProvider([configFile(fileId: 'f48d6e64-fa5d-4d00-8e66-42dee63996d6', targetLocation: 'custom-settings.xml')]) {
                                 // Inject Nexus credentials from Jenkins credentials store
                                 withCredentials([
@@ -172,7 +172,7 @@ pipeline {
                                         passwordVariable: 'NEXUS_PASSWORD'
                                     )
                                 ]) {
-                                   sh """
+                                    sh """
                                         mvn --batch-mode clean deploy \\
                                           --settings custom-settings.xml \\
                                           -DaltDeploymentRepository=nexus::default::${DEPLOY_REPO_URL} \\

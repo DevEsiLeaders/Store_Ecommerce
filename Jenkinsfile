@@ -13,9 +13,9 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME    = "ecommerce-store"
         DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
-         // Replace with your Nexus credentials ID stored in Jenkins
+        // Nexus credentials (ID defined in Jenkins Credentials)
         NEXUS_CREDENTIALS_ID = 'nexus-credentials'
-        // Replace with your Nexus repository endpoints as needed
+        // Nexus repository endpoints – replace with your Nexus domain
         DEPLOY_REPO_URL      = 'http://your-nexus-domain:8081/repository/maven-releases/'
         DEPLOY_SNAPSHOT_URL  = 'http://your-nexus-domain:8081/repository/maven-snapshots/'
     }
@@ -117,7 +117,6 @@ pipeline {
                         }
                     }
                 }
-        
                 stage('FindBugs') {
                     steps {
                         dir('Ecommerce_Store') {
@@ -163,61 +162,61 @@ pipeline {
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
-                         withCredentials([
-                    usernamePassword(
-                        credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
-                        usernameVariable: 'NEXUS_USERNAME',
-                        passwordVariable: 'NEXUS_PASSWORD'
-                    )
-                ]) {
-                    sh """
-                        mvn --batch-mode clean deploy \
-                          -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \
-                          -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \
-                          -DnexusUser=${NEXUS_USERNAME} \
-                          -DnexusPass=${NEXUS_PASSWORD}
-                    """
-                        
+                            // Fetch the settings.xml stored in Jenkins as a managed file.
+                            configFileProvider([configFile(fileId: 'f48d6e64-fa5d-4d00-8e66-42dee63996d6', targetLocation: 'custom-settings.xml')]) {
+                                // Inject Nexus credentials.
+                                withCredentials([
+                                    usernamePassword(
+                                        credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
+                                        usernameVariable: 'NEXUS_USERNAME',
+                                        passwordVariable: 'NEXUS_PASSWORD'
+                                    )
+                                ]) {
+                                    sh """
+                                        mvn --batch-mode clean deploy \\
+                                          --settings custom-settings.xml \\
+                                          -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \\
+                                          -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \\
+                                          -DnexusUser=${NEXUS_USERNAME} \\
+                                          -DnexusPass=${NEXUS_PASSWORD}
+                                    """
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-   stage('Déploiement Docker') {
-    steps {
-        dir('Ecommerce_Store') {
-            script {
-                def tag = "${env.BUILD_NUMBER}"
-                def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
-                
-                // Build docker image
-                echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
-                def dockerImage = docker.build(fullImageTag)
-                echo "✅ [Docker] Image construite"
-                
-                // Credentials binding
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    // Create properly namespaced tag (required for Docker Hub)
-                    def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
-                    bat "docker tag ${fullImageTag} ${namespaceImageTag}"
-                    
-                    // Direct login approach
-                    bat "docker logout"
-                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                    
-                    // Push with namespace
-                    bat "docker push ${namespaceImageTag}"
-                    echo "✅ [Docker] Push réussi"
+        stage('Déploiement Docker') {
+            steps {
+                dir('Ecommerce_Store') {
+                    script {
+                        def tag = "${env.BUILD_NUMBER}"
+                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+                        
+                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                        def dockerImage = docker.build(fullImageTag)
+                        echo "✅ [Docker] Image construite"
+                        
+                        withCredentials([usernamePassword(
+                            credentialsId: 'dockerhub-credentials',
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )]) {
+                            def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
+                            bat "docker tag ${fullImageTag} ${namespaceImageTag}"
+                            
+                            bat "docker logout"
+                            bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                            
+                            bat "docker push ${namespaceImageTag}"
+                            echo "✅ [Docker] Push réussi"
+                        }
+                    }
                 }
             }
         }
-    }
-}
 
         stage('End') {
             steps {

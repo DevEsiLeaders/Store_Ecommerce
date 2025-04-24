@@ -172,11 +172,11 @@ pipeline {
                                         passwordVariable: 'NEXUS_PASSWORD'
                                     )
                                 ]) {
-                                    sh """
+                                   sh """
                                         mvn --batch-mode clean deploy \\
                                           --settings custom-settings.xml \\
-                                          -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \\
-                                          -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \\
+                                          -DaltDeploymentRepository=nexus::default::${DEPLOY_REPO_URL} \\
+                                          -DaltSnapshotRepository=nexus::default::${DEPLOY_SNAPSHOT_URL} \\
                                           -DnexusUser=${NEXUS_USERNAME} \\
                                           -DnexusPass=${NEXUS_PASSWORD}
                                     """

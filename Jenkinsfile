@@ -5,7 +5,7 @@ pipeline {
         maven 'maven'
         jdk 'JDK'
     }
-
+s
     triggers {
         githubPush()
     }
@@ -40,8 +40,10 @@ pipeline {
             parallel {
                 stage('Build With Maven') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn clean install -DskipTests'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                bat 'mvn clean install -DskipTests -s settings.xml'
+                            }
                         }
                     }
                 }
@@ -52,10 +54,12 @@ pipeline {
             parallel {
                 stage('JUnit') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            echo '📋 Génération des rapports JUnit'
-                            bat 'mvn test'
-                            junit 'target/surefire-reports/*.xml'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                echo '📋 Génération des rapports JUnit'
+                                bat 'mvn test -s settings.xml'
+                                junit 'target/surefire-reports/*.xml'
+                            }
                         }
                     }
                 }
@@ -76,8 +80,10 @@ pipeline {
             parallel {
                 stage('Checkstyle') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn checkstyle:checkstyle'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                bat 'mvn checkstyle:checkstyle -s settings.xml'
+                            }
                         }
                     }
                     post {
@@ -95,8 +101,10 @@ pipeline {
                 }
                 stage('PMD') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn pmd:pmd'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                bat 'mvn pmd:pmd -s settings.xml'
+                            }
                         }
                     }
                     post {
@@ -112,12 +120,14 @@ pipeline {
                         }
                     }
                 }
-        
+
                 stage('FindBugs') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            echo '🔎 Analyse SpotBugs'
-                            bat 'mvn spotbugs:spotbugs'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                echo '🔎 Analyse SpotBugs'
+                                bat 'mvn spotbugs:spotbugs -s settings.xml'
+                            }
                         }
                     }
                     post {
@@ -138,8 +148,10 @@ pipeline {
 
         stage('JavaDoc') {
             steps {
-                dir('Ecommerce_Store') {
-                    bat 'mvn javadoc:javadoc'
+                configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                    dir('Ecommerce_Store') {
+                        bat 'mvn javadoc:javadoc -s settings.xml'
+                    }
                 }
             }
         }
@@ -157,48 +169,50 @@ pipeline {
             parallel {
                 stage('Nexus') {
                     steps {
-                        dir('Ecommerce_Store') {
-                            bat 'mvn deploy'
+                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                            dir('Ecommerce_Store') {
+                                bat 'mvn deploy -s settings.xml'
+                            }
                         }
                     }
                 }
             }
         }
 
-   stage('Déploiement Docker') {
-    steps {
-        dir('Ecommerce_Store') {
-            script {
-                def tag = "${env.BUILD_NUMBER}"
-                def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
-                
-                // Build docker image
-                echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
-                def dockerImage = docker.build(fullImageTag)
-                echo "✅ [Docker] Image construite"
-                
-                // Credentials binding
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'DOCKER_USERNAME',
-                    passwordVariable: 'DOCKER_PASSWORD'
-                )]) {
-                    // Create properly namespaced tag (required for Docker Hub)
-                    def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
-                    bat "docker tag ${fullImageTag} ${namespaceImageTag}"
-                    
-                    // Direct login approach
-                    bat "docker logout"
-                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                    
-                    // Push with namespace
-                    bat "docker push ${namespaceImageTag}"
-                    echo "✅ [Docker] Push réussi"
+        stage('Déploiement Docker') {
+            steps {
+                dir('Ecommerce_Store') {
+                    script {
+                        def tag = "${env.BUILD_NUMBER}"
+                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+
+                        // Build docker image
+                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                        def dockerImage = docker.build(fullImageTag)
+                        echo "✅ [Docker] Image construite"
+
+                        // Credentials binding
+                        withCredentials([usernamePassword(
+                            credentialsId: 'dockerhub-credentials',
+                            usernameVariable: 'DOCKER_USERNAME',
+                            passwordVariable: 'DOCKER_PASSWORD'
+                        )]) {
+                            // Create properly namespaced tag (required for Docker Hub)
+                            def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
+                            bat "docker tag ${fullImageTag} ${namespaceImageTag}"
+
+                            // Direct login approach
+                            bat "docker logout"
+                            bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+
+                            // Push with namespace
+                            bat "docker push ${namespaceImageTag}"
+                            echo "✅ [Docker] Push réussi"
+                        }
+                    }
                 }
             }
         }
-    }
-}
 
         stage('End') {
             steps {

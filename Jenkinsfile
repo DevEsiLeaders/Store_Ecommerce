@@ -34,47 +34,41 @@ pipeline {
                 ])
             }
         }
-
-     stage('Build') {
+      stage('Build') {
     parallel {
         stage('Build With Maven') {
             steps {
                 script {
-                    // Print environment variables to help with debugging
-                    echo "🔍 Debugging information:"
-                    echo "Workspace: ${env.WORKSPACE}"
-                    echo "Java Home: ${env.JAVA_HOME}"
+                    echo "🔍 Checking Ecommerce_Store directory content"
+                    bat "dir Ecommerce_Store"
                     
-                    // Check if Maven is available
-                    bat "echo Checking Maven version:"
-                    bat "mvn --version || echo Maven not found in PATH"
-                    
-                    // Check if directory exists
-                    bat "if exist Ecommerce_Store (echo Directory exists) else (echo Directory NOT found)"
-                    bat "dir"
+                    // Check if pom.xml exists in the Ecommerce_Store directory
+                    bat "if exist Ecommerce_Store\\pom.xml (echo POM file found) else (echo POM file NOT found)"
                 }
                 
                 configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                    // Verify settings.xml was created
-                    bat "if exist settings.xml (echo Settings file found) else (echo Settings file NOT found)"
+                    // Verify settings.xml content
+                    bat "echo Verifying settings.xml content:"
+                    bat "type settings.xml | findstr /C:\"repositories\" /C:\"repository\" /C:\"pluginRepositories\""
                     
                     dir('Ecommerce_Store') {
-                        // List files to verify we're in the right directory
-                        bat "dir"
-                        bat "if exist pom.xml (echo POM file found) else (echo POM file NOT found)"
+                        // Print current directory to confirm location
+                        bat "cd"
                         
-                        // Run Maven with debug output
-                        echo "🚀 Running Maven build with additional debugging"
-                        bat "mvn clean install -DskipTests -X -s ../settings.xml"
+                        // Try Maven with verbose output but limited goals first
+                        echo "🚀 Running Maven validate with debug output"
+                        bat "mvn validate -X -s ..\\settings.xml || echo Maven validate failed"
+                        
+                        // If validation passes, attempt the full build
+                        echo "🚀 Running full Maven build"
+                        bat "mvn clean install -DskipTests -s ..\\settings.xml"
                     }
                 }
             }
             post {
                 failure {
-                    echo "❌ Maven build failed - collecting debug information"
-                    bat "echo PATH = %PATH%"
-                    bat "echo JAVA_HOME = %JAVA_HOME%"
-                    bat "dir C:\\Windows\\System32"
+                    echo "❌ Maven build failed - checking POM file content"
+                    bat "if exist Ecommerce_Store\\pom.xml (type Ecommerce_Store\\pom.xml) else (echo POM file NOT found)"
                 }
             }
         }

@@ -13,6 +13,11 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME    = "ecommerce-store"
         DOCKER_REGISTRY_URL  = "https://index.docker.io/v1/"
+         // Replace with your Nexus credentials ID stored in Jenkins
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
+        // Replace with your Nexus repository endpoints as needed
+        DEPLOY_REPO_URL      = 'http://your-nexus-domain:8081/repository/maven-releases/'
+        DEPLOY_SNAPSHOT_URL  = 'http://your-nexus-domain:8081/repository/maven-snapshots/'
     }
 
     stages {
@@ -158,7 +163,19 @@ pipeline {
                 stage('Nexus') {
                     steps {
                         dir('Ecommerce_Store') {
-                            bat 'mvn deploy'
+                             withCredentials([usernamePassword(
+                    credentialsId: "${env.NEXUS_CREDENTIALS_ID}",
+                    usernameVariable: 'NEXUS_USERNAME',
+                    passwordVariable: 'NEXUS_PASSWORD')]) {
+                    // Example Maven command with batch mode, specifying the repos in settings
+                    sh """
+                      mvn --batch-mode clean deploy \
+                        -DaltDeploymentRepository=releases::default::${DEPLOY_REPO_URL} \
+                        -DaltSnapshotRepository=snapshots::default::${DEPLOY_SNAPSHOT_URL} \
+                        -DnexusUser=${NEXUS_USERNAME} \
+                        -DnexusPass=${NEXUS_PASSWORD}
+                    """
+                        
                         }
                     }
                 }

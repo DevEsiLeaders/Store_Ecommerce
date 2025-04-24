@@ -5,6 +5,7 @@ pipeline {
         maven 'maven'
         jdk 'JDK'
     }
+
     triggers {
         githubPush()
     }
@@ -25,7 +26,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[ name: '*/main' ]],
+                    branches: [[ name: '*/develop' ]],
                     extensions: [],
                     userRemoteConfigs: [[
                         url:           'https://github.com/Badrbernane/Store_Ecommerce.git',
@@ -34,66 +35,27 @@ pipeline {
                 ])
             }
         }
-      stage('Build') {
-    parallel {
-        stage('Build With Maven') {
-            steps {
-                script {
-                    echo "🔍 Checking Maven and Java versions"
-                    bat "mvn --version"
-                    bat "java -version"
-                    
-                    echo "🔍 Checking Ecommerce_Store directory content"
-                    bat "dir Ecommerce_Store /a"
-                }
-                
-                configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                    echo "🔍 Verifying settings.xml was created"
-                    bat "if exist settings.xml (echo Settings file found) else (echo Settings file NOT found)"
-                    
-                    dir('Ecommerce_Store') {
-                        // Try a simpler Maven command first with full error output
-                        echo "🚀 Testing simple Maven compile"
-                        bat script: "mvn compile -e -s ..\\settings.xml", returnStatus: true
-                        
-                        // Try to run Maven with all error details
-                        echo "🚀 Running Maven with full error details"
-                        bat script: "mvn clean install -DskipTests -B -e -s ..\\settings.xml > maven_output.log 2>&1", returnStatus: true
-                        
-                        // Display the log file regardless of success or failure
-                        bat "type maven_output.log || echo Could not find log file"
+
+        stage('Build') {
+            parallel {
+                stage('Build With Maven') {
+                    steps {
+                        dir('Ecommerce_Store') {
+                            bat 'mvn clean install -DskipTests'
+                        }
                     }
                 }
             }
-            post {
-                always {
-                    echo "📋 Collecting Maven build logs"
-                    
-                    // Try to fetch any Maven logs that might exist
-                    bat script: """
-                        if exist Ecommerce_Store\\target\\maven-status (
-                            echo Maven status files found:
-                            dir Ecommerce_Store\\target\\maven-status /s
-                        ) else (
-                            echo No Maven status files found
-                        )
-                    """, returnStatus: true
-                }
-            }
         }
-    }
-}
 
         stage('Test') {
             parallel {
                 stage('JUnit') {
                     steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                echo '📋 Génération des rapports JUnit'
-                                bat 'mvn test -s settings.xml'
-                                junit 'target/surefire-reports/*.xml'
-                            }
+                        dir('Ecommerce_Store') {
+                            echo '📋 Génération des rapports JUnit'
+                            bat 'mvn test'
+                            junit 'target/surefire-reports/*.xml'
                         }
                     }
                 }
@@ -114,10 +76,8 @@ pipeline {
             parallel {
                 stage('Checkstyle') {
                     steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                bat 'mvn checkstyle:checkstyle -s settings.xml'
-                            }
+                        dir('Ecommerce_Store') {
+                            bat 'mvn checkstyle:checkstyle'
                         }
                     }
                     post {
@@ -135,10 +95,8 @@ pipeline {
                 }
                 stage('PMD') {
                     steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                bat 'mvn pmd:pmd -s settings.xml'
-                            }
+                        dir('Ecommerce_Store') {
+                            bat 'mvn pmd:pmd'
                         }
                     }
                     post {
@@ -154,14 +112,12 @@ pipeline {
                         }
                     }
                 }
-
+        
                 stage('FindBugs') {
                     steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                echo '🔎 Analyse SpotBugs'
-                                bat 'mvn spotbugs:spotbugs -s settings.xml'
-                            }
+                        dir('Ecommerce_Store') {
+                            echo '🔎 Analyse SpotBugs'
+                            bat 'mvn spotbugs:spotbugs'
                         }
                     }
                     post {
@@ -182,10 +138,8 @@ pipeline {
 
         stage('JavaDoc') {
             steps {
-                configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                    dir('Ecommerce_Store') {
-                        bat 'mvn javadoc:javadoc -s settings.xml'
-                    }
+                dir('Ecommerce_Store') {
+                    bat 'mvn javadoc:javadoc'
                 }
             }
         }
@@ -203,50 +157,48 @@ pipeline {
             parallel {
                 stage('Nexus') {
                     steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                bat 'mvn deploy -s settings.xml'
-                            }
+                        dir('Ecommerce_Store') {
+                            bat 'mvn deploy'
                         }
                     }
                 }
             }
         }
 
-        stage('Déploiement Docker') {
-            steps {
-                dir('Ecommerce_Store') {
-                    script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
-
-                        // Build docker image
-                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
-                        def dockerImage = docker.build(fullImageTag)
-                        echo "✅ [Docker] Image construite"
-
-                        // Credentials binding
-                        withCredentials([usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
-                            usernameVariable: 'DOCKER_USERNAME',
-                            passwordVariable: 'DOCKER_PASSWORD'
-                        )]) {
-                            // Create properly namespaced tag (required for Docker Hub)
-                            def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
-                            bat "docker tag ${fullImageTag} ${namespaceImageTag}"
-
-                            // Direct login approach
-                            bat "docker logout"
-                            bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-
-                            // Push with namespace
-                            bat "docker push ${namespaceImageTag}"
-                            echo "✅ [Docker] Push réussi"
-                        }
-                    }
+   stage('Déploiement Docker') {
+    steps {
+        dir('Ecommerce_Store') {
+            script {
+                def tag = "${env.BUILD_NUMBER}"
+                def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+                
+                // Build docker image
+                echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                def dockerImage = docker.build(fullImageTag)
+                echo "✅ [Docker] Image construite"
+                
+                // Credentials binding
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    // Create properly namespaced tag (required for Docker Hub)
+                    def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
+                    bat "docker tag ${fullImageTag} ${namespaceImageTag}"
+                    
+                    // Direct login approach
+                    bat "docker logout"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                    
+                    // Push with namespace
+                    bat "docker push ${namespaceImageTag}"
+                    echo "✅ [Docker] Push réussi"
                 }
             }
         }
+    }
+}
 
         stage('End') {
             steps {

@@ -5,7 +5,6 @@ pipeline {
         maven 'maven'
         jdk 'JDK'
     }
-s
     triggers {
         githubPush()
     }

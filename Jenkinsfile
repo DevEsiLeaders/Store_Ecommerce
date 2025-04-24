@@ -187,31 +187,39 @@ pipeline {
         }
 
         stage('Déploiement Docker') {
-            steps {
-                dir('Ecommerce_Store') {
-                    script {
-                        def tag = "${env.BUILD_NUMBER}"
-                        def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
-                        echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
-                        def dockerImage = docker.build(fullImageTag)
-                        echo "✅ [Docker] Image construite"
-                        
-                        withCredentials([usernamePassword(
-                            credentialsId: 'dockerhub-credentials',
-                            usernameVariable: 'DOCKER_USERNAME',
-                            passwordVariable: 'DOCKER_PASSWORD'
-                        )]) {
-                            def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
-                            bat "docker tag ${fullImageTag} ${namespaceImageTag}"
-                            bat "docker logout"
-                            bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                            bat "docker push ${namespaceImageTag}"
-                            echo "✅ [Docker] Push réussi"
-                        }
-                    }
+    steps {
+        dir('Ecommerce_Store') {
+            script {
+                def tag = "${env.BUILD_NUMBER}"
+                def fullImageTag = "${DOCKER_IMAGE_NAME}:${tag}"
+                
+                // Build docker image
+                echo "🔧 [Docker] Construction de l'image : ${fullImageTag}"
+                def dockerImage = docker.build(fullImageTag)
+                echo "✅ [Docker] Image construite"
+                
+                // Credentials binding
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    // Create properly namespaced tag (required for Docker Hub)
+                    def namespaceImageTag = "${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${tag}"
+                    bat "docker tag ${fullImageTag} ${namespaceImageTag}"
+                    
+                    // Direct login approach
+                    bat "docker logout"
+                    bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                    
+                    // Push with namespace
+                    bat "docker push ${namespaceImageTag}"
+                    echo "✅ [Docker] Push réussi"
                 }
             }
         }
+    }
+}
 
         stage('End') {
             steps {

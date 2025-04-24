@@ -186,7 +186,7 @@ pipeline {
             }
         }
 
-        stage('Déploiement Docker') {
+  stage('Déploiement Docker') {
     steps {
         dir('Ecommerce_Store') {
             script {
@@ -220,6 +220,7 @@ pipeline {
         }
     }
 }
+
 
         stage('End') {
             steps {

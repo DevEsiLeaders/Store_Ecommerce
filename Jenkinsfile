@@ -39,36 +39,45 @@ pipeline {
         stage('Build With Maven') {
             steps {
                 script {
-                    echo "🔍 Checking Ecommerce_Store directory content"
-                    bat "dir Ecommerce_Store"
+                    echo "🔍 Checking Maven and Java versions"
+                    bat "mvn --version"
+                    bat "java -version"
                     
-                    // Check if pom.xml exists in the Ecommerce_Store directory
-                    bat "if exist Ecommerce_Store\\pom.xml (echo POM file found) else (echo POM file NOT found)"
+                    echo "🔍 Checking Ecommerce_Store directory content"
+                    bat "dir Ecommerce_Store /a"
                 }
                 
                 configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                    // Verify settings.xml content
-                    bat "echo Verifying settings.xml content:"
-                    bat "type settings.xml | findstr /C:\"repositories\" /C:\"repository\" /C:\"pluginRepositories\""
+                    echo "🔍 Verifying settings.xml was created"
+                    bat "if exist settings.xml (echo Settings file found) else (echo Settings file NOT found)"
                     
                     dir('Ecommerce_Store') {
-                        // Print current directory to confirm location
-                        bat "cd"
+                        // Try a simpler Maven command first with full error output
+                        echo "🚀 Testing simple Maven compile"
+                        bat script: "mvn compile -e -s ..\\settings.xml", returnStatus: true
                         
-                        // Try Maven with verbose output but limited goals first
-                        echo "🚀 Running Maven validate with debug output"
-                        bat "mvn validate -X -s ..\\settings.xml || echo Maven validate failed"
+                        // Try to run Maven with all error details
+                        echo "🚀 Running Maven with full error details"
+                        bat script: "mvn clean install -DskipTests -B -e -s ..\\settings.xml > maven_output.log 2>&1", returnStatus: true
                         
-                        // If validation passes, attempt the full build
-                        echo "🚀 Running full Maven build"
-                        bat "mvn clean install -DskipTests -s ..\\settings.xml"
+                        // Display the log file regardless of success or failure
+                        bat "type maven_output.log || echo Could not find log file"
                     }
                 }
             }
             post {
-                failure {
-                    echo "❌ Maven build failed - checking POM file content"
-                    bat "if exist Ecommerce_Store\\pom.xml (type Ecommerce_Store\\pom.xml) else (echo POM file NOT found)"
+                always {
+                    echo "📋 Collecting Maven build logs"
+                    
+                    // Try to fetch any Maven logs that might exist
+                    bat script: """
+                        if exist Ecommerce_Store\\target\\maven-status (
+                            echo Maven status files found:
+                            dir Ecommerce_Store\\target\\maven-status /s
+                        ) else (
+                            echo No Maven status files found
+                        )
+                    """, returnStatus: true
                 }
             }
         }

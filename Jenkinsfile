@@ -35,19 +35,51 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            parallel {
-                stage('Build With Maven') {
-                    steps {
-                        configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
-                            dir('Ecommerce_Store') {
-                                bat 'mvn clean install -DskipTests -s settings.xml'
-                            }
-                        }
+     stage('Build') {
+    parallel {
+        stage('Build With Maven') {
+            steps {
+                script {
+                    // Print environment variables to help with debugging
+                    echo "🔍 Debugging information:"
+                    echo "Workspace: ${env.WORKSPACE}"
+                    echo "Java Home: ${env.JAVA_HOME}"
+                    
+                    // Check if Maven is available
+                    bat "echo Checking Maven version:"
+                    bat "mvn --version || echo Maven not found in PATH"
+                    
+                    // Check if directory exists
+                    bat "if exist Ecommerce_Store (echo Directory exists) else (echo Directory NOT found)"
+                    bat "dir"
+                }
+                
+                configFileProvider([configFile(fileId: 'global-settings-xml', targetLocation: 'settings.xml')]) {
+                    // Verify settings.xml was created
+                    bat "if exist settings.xml (echo Settings file found) else (echo Settings file NOT found)"
+                    
+                    dir('Ecommerce_Store') {
+                        // List files to verify we're in the right directory
+                        bat "dir"
+                        bat "if exist pom.xml (echo POM file found) else (echo POM file NOT found)"
+                        
+                        // Run Maven with debug output
+                        echo "🚀 Running Maven build with additional debugging"
+                        bat "mvn clean install -DskipTests -X -s ../settings.xml"
                     }
                 }
             }
+            post {
+                failure {
+                    echo "❌ Maven build failed - collecting debug information"
+                    bat "echo PATH = %PATH%"
+                    bat "echo JAVA_HOME = %JAVA_HOME%"
+                    bat "dir C:\\Windows\\System32"
+                }
+            }
         }
+    }
+}
 
         stage('Test') {
             parallel {

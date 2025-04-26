@@ -230,6 +230,7 @@ pipeline {
 
     post {
         success {
+            echo "[DEBUG] Preparing to send success email..."
             emailext(
                 to: 'badrbernane6@gmail.com',
                 from: 'your-verified-email@domain.com',
@@ -242,8 +243,10 @@ Le pipeline s'est terminé avec succès.
 🔗 URL: ${BUILD_URL}
 """
             )
+            echo "[DEBUG] Success email step completed."
         }
         failure {
+            echo "[DEBUG] Preparing to send failure email..."
             emailext(
                 to: 'badrbernane6@gmail.com',
                 from: 'your-verified-email@domain.com',
@@ -259,9 +262,12 @@ Veuillez consulter le journal en pièce jointe pour les détails.
 """,
                 attachLog: true
             )
+            echo "[DEBUG] Failure email step completed."
         }
         always {
+            echo "[DEBUG] Cleaning up workspace..."
             cleanWs() // Cleanup after email notifications
+            echo "[DEBUG] Workspace cleaned."
         }
     }
 }

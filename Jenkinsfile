@@ -216,12 +216,12 @@ pipeline {
             emailext(
                 to: 'badrbernane6@gmail.com',
                 from: 'badrbernane6@gmail.com',
-                subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+                subject: "gooooood Succes Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
-Le pipeline s'est terminé avec succès.
-🔧 Job: ${JOB_NAME}
-🔢 Build: #${BUILD_NUMBER}
-🔗 URL: ${BUILD_URL}
+Le pipeline s'est termine avec succes.
+ Job: ${JOB_NAME}
+ Build: #${BUILD_NUMBER}
+ URL: ${BUILD_URL}
 """
             )
             echo "[DEBUG] Success email step completed."

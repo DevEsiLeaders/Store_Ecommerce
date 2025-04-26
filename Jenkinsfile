@@ -230,28 +230,27 @@ pipeline {
     }
 
     post {
-        always {
-            cleanWs()
-        }
-        success {
-            emailext(
-                to: 'badrbernane6@gmail.com',
-                subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
-                body: """
+    success {
+        emailext(
+            to: 'badrbernane6@gmail.com',
+            from: 'your-verified-email@domain.com',
+            subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
 Le pipeline s'est terminé avec succès.
 
 🔧 Job: ${JOB_NAME}
 🔢 Build: #${BUILD_NUMBER}
 🔗 URL: ${BUILD_URL}
 """
-            )
-        }
-        failure {
-            emailext(
-                to: 'badrbernane6@gmail.com',
-                subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
-                body: """
-Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
+        )
+    }
+    failure {
+        emailext(
+            to: 'badrbernane6@gmail.com',
+            from: 'your-verified-email@domain.com',
+            subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
+            body: """
+Le pipeline a échoué à l'étape ${env.BUILD_STATUS}.
 
 🔧 Job: ${JOB_NAME}
 🔢 Build: #${BUILD_NUMBER}
@@ -259,8 +258,10 @@ Le pipeline a échoué à l'étape ${currentBuild.currentResult}.
 
 Veuillez consulter le journal en pièce jointe pour les détails.
 """,
-                attachLog: true
-            )
-        }
+            attachLog: true
+        )
+    }
+    always {
+        cleanWs() // Cleanup after email notifications
     }
 }

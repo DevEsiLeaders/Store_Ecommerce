@@ -233,7 +233,7 @@ pipeline {
             echo "[DEBUG] Preparing to send success email..."
             emailext(
                 to: 'badrbernane6@gmail.com',
-                from: 'your-verified-email@domain.com',
+                from: 'badrbernane6@domain.com',
                 subject: "✅ Succès Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
 Le pipeline s'est terminé avec succès.
@@ -249,7 +249,7 @@ Le pipeline s'est terminé avec succès.
             echo "[DEBUG] Preparing to send failure email..."
             emailext(
                 to: 'badrbernane6@gmail.com',
-                from: 'your-verified-email@domain.com',
+                from: 'badrbernane6@domain.com',
                 subject: "❌ ÉCHEC Pipeline ${JOB_NAME} #${BUILD_NUMBER}",
                 body: """
 Le pipeline a échoué à l'étape ${env.BUILD_STATUS}.

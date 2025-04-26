@@ -1,13 +1,13 @@
 pipeline {
     agent any
     stages {
-        stage('Send Test Email') {
+        stage('Test Email') {
             steps {
                 emailext(
-                    to: 'badrbernane6@gmail.com',
-                    from: 'badrbernane6@domain.com', // Must match your SMTP account
-                    subject: "Test Email",
-                    body: "This is a minimal test email from Jenkins pipeline."
+                    to: 'yourRecipient@domain.com',
+                    from: 'yourVerifiedSMTP@domain.com',
+                    subject: "Test Email from Jenkins Pipeline",
+                    body: "This is a test email from a minimal Jenkins Pipeline."
                 )
             }
         }

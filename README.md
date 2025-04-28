@@ -37,41 +37,7 @@ The backend used **Spring Boot** for clean, structured code with a **service lay
   -Maven
   -Apache Tomcat (for WAR deployment)
 
-# Installation
-   **1. Clone the repository:**
-```bash
-git clone https://github.com/mdtalalwasim/Ecommerce_Store.git
-```
-   **2. Navigate to the project directory:**
-```bash
-cd Ecommerce_Store
-```
-  **3. Set up the MySQL database:**
-```bash
-CREATE DATABASE ecommerce_store;
-```
-  **4. Configure database connection settings in application.properties:**
-```bash
-spring.datasource.url=jdbc:mysql://localhost:3306/ecommerce_store
-spring.datasource.username=your-username
-spring.datasource.password=your-password
-```
-**5. Run the application:** 
-**Access the app at http://localhost:8080.**
-
-
-More keyword related to this project: 
-- Ecommerce Store Java
-- Spring Boot MVC Ecommerce
-- Thymeleaf Spring Boot
-- Ecommerce website Spring Security
-- Java Spring Boot Shopping Cart
-- MySQL Spring Boot Ecommerce
-- Ecommerce Project with Java and MySQL
-- Java Ecommerce Repository
-- Spring boot Ecommerce Repository
-
-
+    
 # Project Screenshots are given below: 
 _**Note : Project is Not Fully Completed yet, Still More Modules are in under development. The project will updated day by day._
 
